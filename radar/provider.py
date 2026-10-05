@@ -6,6 +6,7 @@ network denial, changed fields, nulls and incomplete pages are errors, never def
 import json
 import math
 import re
+from http.client import HTTPException
 from datetime import datetime
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
@@ -67,7 +68,7 @@ def get_json(url, params, timeout=12):
         reason = str(error.reason)
         message = '网络代理403拒绝（域名未放行或访问策略拒绝）' if '403' in reason else '接口网络请求失败'
         raise DataError(message) from None
-    except (TimeoutError, OSError):
+    except (TimeoutError, OSError, HTTPException):
         raise DataError('接口超时或网络不可用') from None
     except (ValueError, UnicodeError):
         raise DataError('接口未返回有效JSON') from None

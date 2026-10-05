@@ -15,7 +15,7 @@ def build(output, commit):
         raise ValueError('必须提供真实的40位Git提交SHA')
     if output.exists():
         raise ValueError('输出目录已存在，请选择新的目录以保留已有文件')
-    for name in ('index.html', 'app.js', 'style.css', 'results.json', 'capabilities.json', 'market-calendar.json'):
+    for name in ('index.html', 'app.js', 'style.css', 'results.json', 'capabilities.json', 'market-calendar.json', 'historical-market.json'):
         if not (source / name).is_file():
             raise ValueError(f'新版必要资源缺失：{name}')
     if (source / 'stocks.json').exists():
@@ -37,6 +37,18 @@ def build(output, commit):
             raise ValueError('股票缺少完整五项检查')
         if stock['status'] == 'selected' and any(c.get('status') != 'pass' for c in checks):
             raise ValueError('不能发布必要数据缺失却判为入选的股票')
+    history = json.loads((source / 'historical-market.json').read_text())
+    if history.get('dataMode') != 'real' or history.get('historicalOnly') is not True or history.get('formalSelection') is not False:
+        raise ValueError('历史候选报告必须与正式入选分离')
+    if history.get('candidateCount') != len(history.get('historicalCandidates', [])):
+        raise ValueError('历史候选数量不一致')
+    for row in history.get('historicalCandidates', []) + history.get('technicalCandidates', []):
+        if row.get('formalSelection') is not False or row.get('status') != 'unknown':
+            raise ValueError('历史候选不得正式入选')
+        if len(row.get('gains', [])) != 2 or len(row.get('dailyVolumes', [])) != 2 or any(c.get('status') != 'pass' for c in row['gains'] + row['dailyVolumes'] + [row.get('drawdown', {})]):
+            raise ValueError('历史候选未完整通过必要历史条件')
+    if any(row.get('earnings', {}).get('status') != 'pass' for row in history.get('historicalCandidates', [])):
+        raise ValueError('历史候选缺少盈利或正式扭亏核验')
     shutil.copytree(source, output)
     shutil.copytree(source, output / 'static')
     metadata = json.dumps({'commit': commit, 'builtAt': datetime.now(timezone.utc).isoformat(),

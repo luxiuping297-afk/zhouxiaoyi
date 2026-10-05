@@ -2,7 +2,7 @@
 
 真实数据采集与严格筛选版本。已删除演示行情。五项条件全部通过才入选；任一必要输入缺失、过期或口径不一致，显示“无法判断”。
 
-**当前还不能提供完整真实入选名单**：一分钟行情、财报、业绩预告实测成功，资金日线实测成功；120日日线、证券池及扫描时刻盘中行情/资金请求仍失败。网页显示真实探测结果和阻碍，不将扫描失败解释为市场零只入选。详见 [数据接口调查](docs/data-sources.md)。
+**当前可以扫描沪深京历史候选，尚不能确认盘中正式入选**：腾讯全A证券列表及配对前复权/不复权日线已验证；东方财富财报与业绩预告按候选逐股核验。当前交易时段分钟累计量、主力资金和有效报价仍未完整验证，保持“无法判断”。历史候选与正式入选分别显示，不将接口失败解释为市场零只入选。详见 [全市场历史扫描](docs/historical-market.md)。
 
 ## 运行
 
@@ -20,6 +20,9 @@ python3 scripts/scan.py --preflight --symbols 600519,000001
 
 # 调查个股时可不加 --preflight；仍逐项严格验证，不会绕过数据检查
 python3 scripts/scan.py --symbols 600519
+
+# 免费源沪深京全市场历史候选；休市也可以核验已完成交易日
+python3 scripts/scan_history_market.py --workers 8
 
 # 查看网页
 python3 app.py --host 0.0.0.0 --port 8000
@@ -45,7 +48,7 @@ python3 app.py --host 0.0.0.0 --port 8000
 
 1. 提交并推送所有项目文件到 `main`。
 2. 仓库 **Settings → Pages → Source** 选择 **GitHub Actions**。
-3. **Actions → Deploy stock radar to GitHub Pages → Run workflow** 可部署网页；勾选 `refresh_data` 会先探测、采集，再部署。可在 `symbols` 填入逗号分隔的代码，留空请求全A股。
+3. **Actions → Deploy stock radar to GitHub Pages → Run workflow** 可部署网页；勾选 `refresh_history` 扫描沪深京历史候选；勾选 `refresh_data` 会探测、采集盘中数据。可在 `symbols` 填入逗号分隔的代码（只影响盘中扫描），留空请求全A股。
 4. 接口不完整时工作流会发布诊断页面，**不会声称采集成功**；代码错误或测试失败会阻止部署。部署地址以工作流 `github-pages` 输出为准。
 
 网站源文件位于 `static/`，发布前由 `scripts/build_site.py` 验证并生成发布目录，同时提供站点根路径及旧 `/static/` 兼容入口；`build.json` 记录发布提交，网页页脚显示版本。不需要后台或构建依赖。
