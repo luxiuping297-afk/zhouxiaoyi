@@ -1,0 +1,29 @@
+name: Validate small-sample data connectivity
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  checks: write
+jobs:
+  connectivity:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Diagnose three actual stocks without scanning the market
+        run: python3 scripts/diagnose_network.py --context github-runner --output "$RUNNER_TEMP/network-report.json"
+      - name: Record diagnostic evidence
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/network-report.json', 'utf8'));
+            await github.rest.checks.create({
+              owner: context.repo.owner, repo: context.repo.repo, head_sha: context.sha,
+              name: 'Small-sample data connectivity evidence', status: 'completed', conclusion: 'neutral',
+              output: {title: 'Connectivity checks only; live screening not verified',
+                summary: '```json\n' + JSON.stringify(report, null, 2) + '\n```'}
+            });
