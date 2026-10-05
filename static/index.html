@@ -1,0 +1,6 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>股票雷达</title><link rel="stylesheet" href="./style.css"><script src="./app.js" defer></script></head>
+<body><main><header><p class="eyebrow">STOCK RADAR</p><h1>股票雷达</h1><p>快速发现关注股票的涨跌变化。</p></header>
+<p class="notice">本地演示数据 · 非实时行情 · 不构成投资建议</p>
+<section class="controls" aria-label="行情筛选"><label>搜索股票<input id="search" type="search" placeholder="股票代码或名称"></label><label>涨跌筛选<select id="direction"><option value="all">全部股票</option><option value="up">上涨</option><option value="down">下跌</option></select></label><button id="refresh" type="button">刷新数据</button></section>
+<p id="status" role="status" aria-live="polite">正在加载…</p><div class="table-wrap"><table><caption>按涨跌幅从高到低排列，价格单位：人民币元</caption><thead><tr><th scope="col">代码</th><th scope="col">名称</th><th scope="col">价格</th><th scope="col">涨跌幅</th></tr></thead><tbody id="stocks"></tbody></table></div></main></body></html>

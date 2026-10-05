@@ -1,0 +1,11 @@
+:root {font-family:system-ui,sans-serif;color:#e4eaf4;background:#0d1423}
+* {box-sizing:border-box} body {margin:0} main {max-width:960px;margin:64px auto;padding:0 24px}
+.eyebrow {color:#73b5ff;letter-spacing:.18em;font-size:12px} h1 {font-size:36px;margin:12px 0}
+header p,#status,caption {color:#a5b3c9} .notice {padding:14px 18px;background:#17263b;border-radius:10px;color:#b7d7ff}
+.controls {display:flex;gap:16px;align-items:end;margin:28px 0;flex-wrap:wrap} label {display:grid;gap:8px;font-size:14px}
+input,select,button {font:inherit;padding:12px;border:1px solid #35465e;border-radius:8px;background:#182337;color:#e4eaf4}
+input {width:280px;max-width:100%} button {background:#286ac5;cursor:pointer} button:disabled {opacity:.6;cursor:wait}
+:focus-visible {outline:2px solid #73b5ff;outline-offset:3px} .table-wrap {overflow-x:auto;background:#141f31;border-radius:12px}
+table {width:100%;border-collapse:collapse;white-space:nowrap} caption {text-align:left;padding:16px;font-size:13px}
+th,td {text-align:left;padding:18px;border-bottom:1px solid #27364c} th {color:#a5b3c9;font-size:13px} td {font-variant-numeric:tabular-nums}
+.up {color:#ff8188} .down {color:#59d6a0} @media(max-width:600px){main{margin:28px auto;padding:0 16px}th,td{padding:14px}}
