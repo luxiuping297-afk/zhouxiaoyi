@@ -9,14 +9,10 @@ from urllib.request import Request, urlopen
 from urllib.parse import urljoin
 
 URLS = {
- 'sse_home': 'https://www.sse.com.cn/',
- 'sse_notices': 'https://www.sse.com.cn/disclosure/announcement/general/',
- 'bse_home': 'https://www.bse.cn/',
- 'holiday_search': 'https://www.bing.com/search?q=2026+%E5%9B%BD%E5%BA%86+%E4%BC%91%E5%B8%82+%E4%B8%8A%E6%B5%B7%E8%AF%81%E5%88%B8%E4%BA%A4%E6%98%93%E6%89%80',
- 'sse': 'https://www.sse.com.cn/services/tradingservice/tradingcalendar/',
- 'szse': 'https://www.szse.cn/marketServices/deal/index.html',
- 'jqdata': 'https://www.joinquant.com/default/index/sdk',
- 'rqdata': 'https://www.ricequant.com/welcome/pricing',
+ 'sse_annual': 'https://www.sse.com.cn/disclosure/dealinstruc/closed/',
+ 'sse_national_day': 'https://www.sse.com.cn/disclosure/announcement/general/c/c_20260915_10832273.shtml',
+ 'tushare_permissions': 'https://tushare.pro/document/1?doc_id=108',
+ 'tushare_goods': 'https://tushare.pro/wctapi/goods?type=2',
 }
 
 def read(item):

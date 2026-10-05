@@ -2,6 +2,7 @@
 from datetime import datetime, time, timedelta
 from decimal import Decimal, InvalidOperation
 from zoneinfo import ZoneInfo
+from .market import market_status
 
 CHINA = ZoneInfo('Asia/Shanghai')
 RULES = [
@@ -40,6 +41,9 @@ def timestamp(value):
 
 
 def fresh(value, now):
+    market = market_status(now)
+    if market['state'] != 'open':
+        raise Missing(market['message'])
     if now.weekday() >= 5 or not (time(9, 31) <= now.time() <= time(11, 30) or time(13, 1) <= now.time() <= time(14, 57)):
         raise Missing('扫描时刻不在支持的连续竞价时段，不能判断盘中条件')
     point = timestamp(value)

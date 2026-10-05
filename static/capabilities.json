@@ -1,34 +1,34 @@
 {
-  "checkedAt": "2026-10-06T05:52:30.103919+08:00",
+  "checkedAt": "2026-10-06T06:15:06.462688+08:00",
   "checks": [
     {
       "kind": "history",
-      "status": "unavailable",
-      "message": "600519：上游连接在响应头之前被终止，未收到行情JSON；000001：上游连接在响应头之前被终止，未收到行情JSON；300750：上游连接在响应头之前被终止，未收到行情JSON；腾讯备用前复权日线三只均可获取，但历史涨幅字段未验证",
-      "source": "https://push2his.eastmoney.com/api/qt/stock/kline/get"
+      "status": "partial",
+      "message": "600519：已获取，最新记录 2026-09-30；000001：已获取，最新记录 2026-09-30；300750：已获取，最新记录 2026-09-30；备用日线160条可取，但历史涨幅字段/除权昨收尚未验证，不能判断严格3%阈值。9月30日为休市前正常最新交易日。",
+      "source": "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/newfqkline/get"
     },
     {
       "kind": "minutes",
       "status": "unavailable",
-      "message": "600519：上游连接在响应头之前被终止，未收到行情JSON；000001：请求及基本字段通过；不代表当日盘中链路通过；300750：请求及基本字段通过；不代表当日盘中链路通过",
+      "message": "600519：HTTP 503：上游连接在响应头之前被终止，未收到行情JSON；000001：HTTP 503：上游连接在响应头之前被终止，未收到行情JSON；300750：HTTP 503：上游连接在响应头之前被终止，未收到行情JSON",
       "source": "https://push2his.eastmoney.com/api/qt/stock/trends2/get"
     },
     {
       "kind": "financial",
       "status": "reachable",
-      "message": "600519：请求及基本字段通过；不代表当日盘中链路通过；000001：请求及基本字段通过；不代表当日盘中链路通过；300750：请求及基本字段通过；不代表当日盘中链路通过",
+      "message": "600519：已获取，最新记录 2026-08-15；000001：已获取，最新记录 2026-08-15；300750：已获取，最新记录 2026-07-25",
       "source": "https://datacenter-web.eastmoney.com/api/data/v1/get"
     },
     {
       "kind": "forecasts",
       "status": "reachable",
-      "message": "600519：请求及基本字段通过；不代表当日盘中链路通过；000001：请求及基本字段通过；不代表当日盘中链路通过；300750：请求及基本字段通过；不代表当日盘中链路通过",
+      "message": "600519：已获取，最新记录 2025-01-03；000001：已获取，最新记录 2016-01-21；300750：已获取，最新记录 2025-01-21",
       "source": "https://datacenter-web.eastmoney.com/api/data/v1/get"
     },
     {
       "kind": "funds",
       "status": "unavailable",
-      "message": "600519：上游网关返回502，未收到行情JSON；000001：上游网关返回502，未收到行情JSON；300750：上游网关返回502，未收到行情JSON",
+      "message": "600519：HTTP 502：上游网关返回502，未收到行情JSON；000001：HTTP 502：上游网关返回502，未收到行情JSON；300750：HTTP 502：上游网关返回502，未收到行情JSON；休市本身不记为故障，以上仅为实际请求的HTTP错误；复市仍须核实盘中资金时间戳。",
       "source": "https://push2.eastmoney.com/api/qt/clist/get"
     }
   ]

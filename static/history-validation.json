@@ -1,0 +1,264 @@
+{
+  "checkedAt": "2026-10-06T06:15:06.462688+08:00",
+  "purpose": "历史字段及连接诊断，不生成入选结果",
+  "stocks": [
+    {
+      "symbol": "600519",
+      "checkedAt": "2026-10-06T06:14:57.441205+08:00",
+      "checks": [
+        {
+          "kind": "eastmoney_history",
+          "status": "unavailable",
+          "reason": "HTTP 503：上游连接在响应头之前被终止，未收到行情JSON"
+        },
+        {
+          "kind": "eastmoney_minutes",
+          "status": "unavailable",
+          "reason": "HTTP 503：上游连接在响应头之前被终止，未收到行情JSON"
+        },
+        {
+          "kind": "eastmoney_quote_funds",
+          "status": "unavailable",
+          "reason": "HTTP 502：上游网关返回502，未收到行情JSON"
+        },
+        {
+          "kind": "financial",
+          "status": "received",
+          "latestDataAt": "2026-08-15",
+          "period": "2026-06-30"
+        },
+        {
+          "kind": "forecasts",
+          "status": "received",
+          "records": 2,
+          "latestDataAt": "2025-01-03"
+        },
+        {
+          "kind": "tencent_qfqday",
+          "status": "received",
+          "records": 160,
+          "latestDataAt": "2026-09-30",
+          "rowColumnCounts": [
+            10
+          ],
+          "sampleLastRow": [
+            "2026-09-30",
+            "1239.53",
+            "1258.62",
+            "1268.00",
+            "1236.05",
+            "38331.00",
+            {},
+            "0.31",
+            "479724.66",
+            ""
+          ],
+          "verifiedHistoricalChangePercent": false,
+          "reason": "已验证日期及OHLC/成交量；无已验证的历史涨幅或除权昨收字段，附加列不猜测映射"
+        },
+        {
+          "kind": "tencent_day",
+          "status": "received",
+          "records": 160,
+          "latestDataAt": "2026-09-30",
+          "rowColumnCounts": [
+            11
+          ],
+          "sampleLastRow": [
+            "2026-09-30",
+            "1239.53",
+            "1258.62",
+            "1268.00",
+            "1236.05",
+            "38331.00",
+            {},
+            "0.31",
+            "479724.66",
+            "0.00",
+            "0.00"
+          ],
+          "verifiedHistoricalChangePercent": false,
+          "reason": "已验证日期及OHLC/成交量；无已验证的历史涨幅或除权昨收字段，附加列不猜测映射"
+        },
+        {
+          "kind": "tencent_quote",
+          "status": "received",
+          "latestDataAt": "2026-09-30T16:14:58+08:00",
+          "reason": "报价只能对应自身时间戳的交易日，不能补齐前两日历史涨幅"
+        }
+      ]
+    },
+    {
+      "symbol": "000001",
+      "checkedAt": "2026-10-06T06:14:57.442632+08:00",
+      "checks": [
+        {
+          "kind": "eastmoney_history",
+          "status": "unavailable",
+          "reason": "HTTP 503：上游连接在响应头之前被终止，未收到行情JSON"
+        },
+        {
+          "kind": "eastmoney_minutes",
+          "status": "unavailable",
+          "reason": "HTTP 503：上游连接在响应头之前被终止，未收到行情JSON"
+        },
+        {
+          "kind": "eastmoney_quote_funds",
+          "status": "unavailable",
+          "reason": "HTTP 502：上游网关返回502，未收到行情JSON"
+        },
+        {
+          "kind": "financial",
+          "status": "received",
+          "latestDataAt": "2026-08-15",
+          "period": "2026-06-30"
+        },
+        {
+          "kind": "forecasts",
+          "status": "received",
+          "records": 2,
+          "latestDataAt": "2016-01-21"
+        },
+        {
+          "kind": "tencent_qfqday",
+          "status": "received",
+          "records": 160,
+          "latestDataAt": "2026-09-30",
+          "rowColumnCounts": [
+            10
+          ],
+          "sampleLastRow": [
+            "2026-09-30",
+            "11.36",
+            "11.57",
+            "11.65",
+            "11.33",
+            "1045357.00",
+            {},
+            "0.54",
+            "120581.49",
+            ""
+          ],
+          "verifiedHistoricalChangePercent": false,
+          "reason": "已验证日期及OHLC/成交量；无已验证的历史涨幅或除权昨收字段，附加列不猜测映射"
+        },
+        {
+          "kind": "tencent_day",
+          "status": "received",
+          "records": 160,
+          "latestDataAt": "2026-09-30",
+          "rowColumnCounts": [
+            11
+          ],
+          "sampleLastRow": [
+            "2026-09-30",
+            "11.36",
+            "11.57",
+            "11.65",
+            "11.33",
+            "1045357.00",
+            {},
+            "0.54",
+            "120581.49",
+            "0.00",
+            "0.00"
+          ],
+          "verifiedHistoricalChangePercent": false,
+          "reason": "已验证日期及OHLC/成交量；无已验证的历史涨幅或除权昨收字段，附加列不猜测映射"
+        },
+        {
+          "kind": "tencent_quote",
+          "status": "received",
+          "latestDataAt": "2026-09-30T16:15:00+08:00",
+          "reason": "报价只能对应自身时间戳的交易日，不能补齐前两日历史涨幅"
+        }
+      ]
+    },
+    {
+      "symbol": "300750",
+      "checkedAt": "2026-10-06T06:14:57.443175+08:00",
+      "checks": [
+        {
+          "kind": "eastmoney_history",
+          "status": "unavailable",
+          "reason": "HTTP 503：上游连接在响应头之前被终止，未收到行情JSON"
+        },
+        {
+          "kind": "eastmoney_minutes",
+          "status": "unavailable",
+          "reason": "HTTP 503：上游连接在响应头之前被终止，未收到行情JSON"
+        },
+        {
+          "kind": "eastmoney_quote_funds",
+          "status": "unavailable",
+          "reason": "HTTP 502：上游网关返回502，未收到行情JSON"
+        },
+        {
+          "kind": "financial",
+          "status": "received",
+          "latestDataAt": "2026-07-25",
+          "period": "2026-06-30"
+        },
+        {
+          "kind": "forecasts",
+          "status": "received",
+          "records": 3,
+          "latestDataAt": "2025-01-21"
+        },
+        {
+          "kind": "tencent_qfqday",
+          "status": "received",
+          "records": 160,
+          "latestDataAt": "2026-09-30",
+          "rowColumnCounts": [
+            10
+          ],
+          "sampleLastRow": [
+            "2026-09-30",
+            "290.00",
+            "291.11",
+            "292.70",
+            "285.80",
+            "296995.00",
+            {},
+            "0.70",
+            "861392.98",
+            ""
+          ],
+          "verifiedHistoricalChangePercent": false,
+          "reason": "已验证日期及OHLC/成交量；无已验证的历史涨幅或除权昨收字段，附加列不猜测映射"
+        },
+        {
+          "kind": "tencent_day",
+          "status": "received",
+          "records": 160,
+          "latestDataAt": "2026-09-30",
+          "rowColumnCounts": [
+            11
+          ],
+          "sampleLastRow": [
+            "2026-09-30",
+            "290.00",
+            "291.11",
+            "292.70",
+            "285.80",
+            "296995.00",
+            {},
+            "0.70",
+            "861392.98",
+            "0.00",
+            "0.00"
+          ],
+          "verifiedHistoricalChangePercent": false,
+          "reason": "已验证日期及OHLC/成交量；无已验证的历史涨幅或除权昨收字段，附加列不猜测映射"
+        },
+        {
+          "kind": "tencent_quote",
+          "status": "received",
+          "latestDataAt": "2026-09-30T16:14:18+08:00",
+          "reason": "报价只能对应自身时间戳的交易日，不能补齐前两日历史涨幅"
+        }
+      ]
+    }
+  ]
+}

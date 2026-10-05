@@ -15,7 +15,7 @@ def build(output, commit):
         raise ValueError('必须提供真实的40位Git提交SHA')
     if output.exists():
         raise ValueError('输出目录已存在，请选择新的目录以保留已有文件')
-    for name in ('index.html', 'app.js', 'style.css', 'results.json', 'capabilities.json'):
+    for name in ('index.html', 'app.js', 'style.css', 'results.json', 'capabilities.json', 'market-calendar.json'):
         if not (source / name).is_file():
             raise ValueError(f'新版必要资源缺失：{name}')
     if (source / 'stocks.json').exists():

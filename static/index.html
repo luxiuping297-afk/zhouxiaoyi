@@ -4,8 +4,10 @@
 <header><p class="eyebrow">A-SHARE RADAR</p><h1>A股筛选雷达</h1><p>五项条件同时成立才入选，必要数据缺失时无法判断。</p></header>
 <p class="notice">真实数据扫描结果 · 不使用演示行情 · 主力资金采用供应商统计口径</p>
 <section class="rules"><h2>筛选口径</h2><ol><li>最近120个已完成交易日，前期高点后回撤超过20%，最近两日收盘及今日价格连续向上。</li><li>前两个交易日及今日扫描时涨幅均 &gt; 0% 且 ≤ 3%。</li><li>前两日全天成交量逐日增加 &gt; 0% 且 ≤ 50%；今日与昨日同一分钟累计量比较，同样范围。</li><li>最新正式财报归母净利润 &gt; 0，或未被正式财报覆盖的最新正式预告确认扭亏。</li><li>今日扫描时主力净流入 &gt; 0。行情延迟超过180秒或同刻分钟数据不完整，无法判断。</li></ol></section>
+<section id="market-state" aria-label="市场交易状态"><h2>正在核对交易所日历…</h2></section>
 <section id="summary" aria-label="扫描状态"><h2>无法判断：正在读取真实数据诊断</h2><p>接口或数据不可用时不会显示演示股票作为筛选结果。</p></section>
-<details><summary>接口可用性与数据来源</summary><p>可用性检测仅代表检测时刻的样本请求；每只股票仍逐项检查完整性。</p><p id="probe-time"></p><ul id="capabilities"></ul></details>
+<details><summary>接口可用性与数据来源</summary><p>接口检测与休市状态分别记录。休市期间报价停留在上一交易日正常；实际HTTP错误仍保留为连接诊断。可用性检测仅代表检测时刻的样本请求。</p><p id="probe-time"></p><ul id="capabilities"></ul></details>
+<details><summary>本次核验仍需补齐的数据与付费权限</summary><p>腾讯日线已验证日期、前复权高低价和日成交量，但没有已验证的历史涨幅/除权昨收字段，不能补齐前两个交易日涨幅。东方财富日线和分钟接口仍有503，盘中资金仍有502；财报及正式预告已可获取。休市不要求当日实时数据；复市后仍须验证当日与前一日同一分钟的完整成交量和有时间戳的主力净流入。</p><p><a href="./history-validation.json">三只真实股票的最新字段核验记录</a> · <a href="https://github.com/luxiuping297-afk/zhouxiaoyi/blob/main/docs/paid-data-options.md">已核实费用、权限和未覆盖条件</a></p><p>Tushare基础日线有历史涨幅字段，达到120积分可获取，需要注册账户与Token；本项目尚未配置。无需在聊天或公开仓库提供密钥。尚无经核实能覆盖全部五项的完整付费方案，暂不购买。</p></details>
 <section class="controls" aria-label="结果筛选"><label>搜索股票<input id="search" type="search" placeholder="股票代码或名称"></label><label>结果状态<select id="direction"><option value="all">全部结果</option><option value="selected">入选</option><option value="unknown">无法判断</option><option value="rejected">不满足</option></select></label><button id="refresh" type="button">读取最新扫描结果</button></section>
 <p id="status" role="status" aria-live="polite">正在加载…</p>
 <section id="stocks" aria-label="股票筛选详情"></section>

@@ -1,0 +1,98 @@
+{
+  "checkedAt": "2026-10-05T22:13:05.950463+00:00",
+  "source": "https://tushare.pro/weborder/#/permission",
+  "publicCatalogueEndpoints": [
+    "https://tushare.pro/wctapi/goods",
+    "https://tushare.pro/wctapi/goods?type=2"
+  ],
+  "currency": "CNY",
+  "basicPoints": [
+    {
+      "id": 1,
+      "type": 1,
+      "name": "2000积分",
+      "desc": "2000积分，1年有效期",
+      "price": 200.0,
+      "duration_unit": null,
+      "doc_url": null,
+      "api_count": 0,
+      "api_list": []
+    },
+    {
+      "id": 3,
+      "type": 1,
+      "name": "5000积分",
+      "desc": "5000积分，1年有效期",
+      "price": 500.0,
+      "duration_unit": null,
+      "doc_url": null,
+      "api_count": 0,
+      "api_list": []
+    }
+  ],
+  "permissions": [
+    {
+      "id": 14,
+      "type": 2,
+      "name": "A股历史分钟",
+      "desc": "沪深京股票历史分钟数据",
+      "price": 2000.0,
+      "duration_unit": "1Y",
+      "doc_url": "https://tushare.pro/document/2?doc_id=370",
+      "api_count": 1,
+      "api_list": [
+        {
+          "api_id": 127,
+          "api_name": "stk_mins",
+          "api_title": "股票历史分钟",
+          "api_doc_url": "https://tushare.pro/document/2?doc_id=370"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": 2,
+      "name": "A股日线RT",
+      "desc": "沪深京股票实时价格行情",
+      "price": 200.0,
+      "duration_unit": "1M",
+      "doc_url": "https://tushare.pro/document/2?doc_id=372",
+      "api_count": 1,
+      "api_list": [
+        {
+          "api_id": 323,
+          "api_name": "rt_k",
+          "api_title": "实时日线",
+          "api_doc_url": "https://tushare.pro/document/2?doc_id=372"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": 2,
+      "name": "A股分钟RT",
+      "desc": "沪深京股票实时分钟频度行情",
+      "price": 1000.0,
+      "duration_unit": "1M",
+      "doc_url": "https://tushare.pro/document/2?doc_id=374",
+      "api_count": 2,
+      "api_list": [
+        {
+          "api_id": 240,
+          "api_name": "rt_min_daily",
+          "api_title": "A股日内分钟",
+          "api_doc_url": "https://tushare.pro/document/2?doc_id=457"
+        },
+        {
+          "api_id": 212,
+          "api_name": "rt_min",
+          "api_title": "A股实时分钟",
+          "api_doc_url": "https://tushare.pro/document/2?doc_id=374"
+        }
+      ]
+    }
+  ],
+  "purchaseMade": false,
+  "fullyMeetsFiveConditions": false,
+  "reason": "已核实的moneyflow及moneyflow_dc均盘后更新；尚无经核实的带实时数据时间戳的盘中主力资金产品。"
+}

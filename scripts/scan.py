@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 from radar.engine import CHINA, evaluate
 from radar.provider import DataError, Eastmoney, valid_symbol
 from radar.fallback import VerifiedFallback
+from radar.market import market_status
 
 
 def scan(provider, symbols=None, workers=2, limit=None, capabilities=None):
@@ -20,6 +21,12 @@ def scan(provider, symbols=None, workers=2, limit=None, capabilities=None):
               'validForSeconds': 180, 'scope': '指定代码' if symbols is not None else '沪深京全A股',
               'universeCount': None, 'scannedCount': 0, 'complete': False, 'stocks': [], 'errors': [],
               'dataMode': 'real', 'provider': provider.name}
+    report['marketStatus'] = market_status(started)
+    if report['marketStatus']['state'] != 'open':
+        report.update(generatedAt=started.isoformat(), liveChainVerified=False,
+                      scope='当前市场状态（未启动盘中筛选）',
+                      counts=dict(selected=0, rejected=0, unknown=0, expired=0))
+        return report
     if not explicit:
         sample = scan(provider, ['600519', '000001', '300750'], workers)
         if sample['errors'] or any(any(c['status'] == 'unknown' for c in row['checks']) for row in sample['stocks']):
@@ -81,7 +88,7 @@ def main():
     except DataError as error:
         parser.error(str(error))
     capabilities = None
-    if args.preflight:
+    if args.preflight and market_status(datetime.now(CHINA))['state'] == 'open':
         from scripts.probe import probe
         capabilities = probe(VerifiedFallback())
         (ROOT / 'static/capabilities.json').write_text(json.dumps(capabilities, ensure_ascii=False, indent=2) + '\n')
@@ -90,7 +97,9 @@ def main():
     temporary = args.output.with_suffix('.tmp')
     temporary.write_text(json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False) + '\n')
     temporary.replace(args.output)
-    print(json.dumps({'complete': report['complete'], 'counts': report['counts'], 'errors': report['errors']}, ensure_ascii=False))
+    print(json.dumps({'marketState': report['marketStatus']['state'], 'complete': report['complete'], 'counts': report['counts'], 'errors': report['errors']}, ensure_ascii=False))
+    if report['marketStatus']['state'] in ('closed', 'preopen', 'break'):
+        return 0  # Normal pause, not an interface failure or successful live screening.
     return 0 if report['complete'] and not report['counts']['unknown'] else 2
 
 

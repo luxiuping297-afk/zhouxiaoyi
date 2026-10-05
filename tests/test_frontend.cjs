@@ -19,17 +19,17 @@ function stock(overrides = {}) {
 }
 async function run(rows, options = {}) {
   const nodes = {};
-  for (const id of ['search', 'direction', 'status', 'stocks', 'refresh', 'summary', 'capabilities', 'probe-time']) nodes['#' + id] = element();
+  for (const id of ['search', 'direction', 'status', 'stocks', 'refresh', 'summary', 'capabilities', 'probe-time', 'market-state']) nodes['#' + id] = element();
   nodes['#direction'].value = 'all';
   const calls = [];
   const report = {schemaVersion: 2, dataMode: 'real', complete: true, scope: '单元测试范围', scannedCount: rows.length,
     universeCount: rows.length, generatedAt: new Date(now).toISOString(), errors: [], stocks: rows};
-  const context = vm.createContext({Date: Clock, URL, setInterval() {},
+  const context = vm.createContext({Date: options.clock || Clock, URL, setInterval() {},
     document: {querySelector: id => nodes[id], createElement: element},
     fetch: async url => {
       calls.push(url);
       if (options.fail && url.endsWith('results.json')) throw new Error('network failure');
-      return {ok: true, json: async () => url.endsWith('results.json') ? report : {checkedAt: new Date(now).toISOString(), checks: []}};
+      return {ok: true, json: async () => url.endsWith('market-calendar.json') ? (options.badCalendar ? {} : JSON.parse(fs.readFileSync('static/market-calendar.json','utf8'))) : url.endsWith('results.json') ? report : {checkedAt: new Date(now).toISOString(), checks: []}};
     }});
   vm.runInContext(fs.readFileSync('static/app.js', 'utf8'), context);
   await new Promise(resolve => setImmediate(resolve));
@@ -39,7 +39,7 @@ async function run(rows, options = {}) {
   let result = await run([stock()]);
   assert.equal(result.nodes['#stocks'].children.length, 1);
   assert.match(text(result.nodes['#summary']), /当前有效入选 1 只/);
-  assert.deepEqual([...result.calls].sort(), ['./build.json', './results.json', './capabilities.json'].sort());
+  assert.deepEqual([...result.calls].sort(), ['./build.json', './results.json', './capabilities.json', './market-calendar.json'].sort());
   assert.match(text(result.nodes['#stocks']), /<script>测试输入<\/script>/);
   const details = result.nodes['#stocks'].children[0].children.at(-1);
   assert.equal(details.children[1].children[0].tag, 'span'); // Non-HTTPS URL is not a link.
@@ -64,5 +64,14 @@ async function run(rows, options = {}) {
   result = await run([], {fail: true});
   assert.match(result.nodes['#status'].textContent, /无法判断/);
   assert.equal(result.nodes['#stocks'].children.length, 0);
+  class HolidayClock extends Date { static now() { return Date.parse('2026-10-06T10:05:00+08:00'); } }
+  result = await run([stock()], {clock: HolidayClock});
+  assert.match(text(result.nodes['#market-state']), /休市，等待下一交易日/);
+  assert.match(text(result.nodes['#market-state']), /2026-09-30/);
+  assert.match(text(result.nodes['#market-state']), /2026-10-08/);
+  assert.match(text(result.nodes['#summary']), /当前有效入选 0 只/);
+  result = await run([stock()], {badCalendar: true});
+  assert.match(text(result.nodes['#market-state']), /无法确认/);
+  assert.match(text(result.nodes['#summary']), /当前有效入选 0 只/);
   console.log('PASS: 前端真实结果加载、搜索、过期隐藏、五项同时满足、缺失/失败状态、安全文本和相对路径');
 })().catch(error => { console.error(error); process.exitCode = 1; });
