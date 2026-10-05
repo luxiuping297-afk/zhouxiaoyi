@@ -1,0 +1,41 @@
+{
+  "checkedAt": "2026-10-06T03:37:45.080940+08:00",
+  "sampleSymbol": "600519",
+  "checks": [
+    {
+      "kind": "history",
+      "source": "https://push2his.eastmoney.com/api/qt/stock/kline/get",
+      "status": "unavailable",
+      "message": "HTTP 503：接口拒绝访问"
+    },
+    {
+      "kind": "minutes",
+      "source": "https://push2his.eastmoney.com/api/qt/stock/trends2/get",
+      "status": "reachable",
+      "message": "请求和基本字段解析通过；不代表盘中完整性或全市场授权已确认"
+    },
+    {
+      "kind": "financial",
+      "source": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+      "status": "reachable",
+      "message": "请求和基本字段解析通过；不代表盘中完整性或全市场授权已确认"
+    },
+    {
+      "kind": "forecasts",
+      "source": "https://datacenter-web.eastmoney.com/api/data/v1/get",
+      "status": "reachable",
+      "message": "请求和基本字段解析通过；不代表盘中完整性或全市场授权已确认"
+    },
+    {
+      "kind": "funds",
+      "source": "https://push2.eastmoney.com/api/qt/clist/get",
+      "status": "partial",
+      "message": "资金日线可获取，最新2026-09-30；扫描时刻盘中资金未确认：HTTP 502：接口拒绝访问",
+      "historicalSource": "https://push2his.eastmoney.com/api/qt/stock/fflow/daykline/get",
+      "historicalEvidence": {
+        "tradeDate": "2026-09-30",
+        "netInflow": 533565520.0
+      }
+    }
+  ]
+}

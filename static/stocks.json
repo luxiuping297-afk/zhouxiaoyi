@@ -1,8 +1,0 @@
-{"source":"本地演示数据，非实时行情","stocks":[
-{"symbol":"600519","name":"贵州茅台","price":1450,"changePercent":1.25},
-{"symbol":"000001","name":"平安银行","price":11.2,"changePercent":-0.88},
-{"symbol":"300750","name":"宁德时代","price":205.6,"changePercent":3.42},
-{"symbol":"002594","name":"比亚迪","price":268.3,"changePercent":2.15},
-{"symbol":"600036","name":"招商银行","price":35.8,"changePercent":-1.1},
-{"symbol":"601318","name":"中国平安","price":48.5,"changePercent":0}
-]}

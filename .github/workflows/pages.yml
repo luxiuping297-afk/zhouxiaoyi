@@ -3,6 +3,15 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      refresh_data:
+        description: '扫描真实数据后部署（接口不完整时发布无法判断诊断）'
+        type: boolean
+        default: false
+      symbols:
+        description: '六位A股代码，逗号分隔；留空请求全A股。建议先少量验证。'
+        type: string
+        default: ''
 permissions:
   contents: read
 concurrency:
@@ -11,6 +20,7 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     permissions:
       contents: read
       pages: write
@@ -21,6 +31,34 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Validate strict screening rules
+        run: |
+          python3 -m unittest discover -s tests -v
+          node --check static/app.js
+          node tests/test_frontend.cjs
+      - name: Collect real data
+        if: github.event_name == 'workflow_dispatch' && inputs.refresh_data
+        env:
+          SCAN_SYMBOLS: ${{ inputs.symbols }}
+        run: |
+          set +e
+          if [ -n "$SCAN_SYMBOLS" ]; then
+            python3 scripts/scan.py --preflight --symbols "$SCAN_SYMBOLS"
+          else
+            python3 scripts/scan.py --preflight
+          fi
+          scan_exit=$?
+          set -e
+          if [ "$scan_exit" -ne 0 ] && [ "$scan_exit" -ne 2 ]; then
+            exit "$scan_exit"
+          fi
+          if [ "$scan_exit" -eq 2 ]; then
+            echo "真实数据不完整；部署诊断页面，不宣称筛选成功。"
+          fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload static website

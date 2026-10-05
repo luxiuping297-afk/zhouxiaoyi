@@ -9,3 +9,7 @@ input {width:280px;max-width:100%} button {background:#286ac5;cursor:pointer} bu
 table {width:100%;border-collapse:collapse;white-space:nowrap} caption {text-align:left;padding:16px;font-size:13px}
 th,td {text-align:left;padding:18px;border-bottom:1px solid #27364c} th {color:#a5b3c9;font-size:13px} td {font-variant-numeric:tabular-nums}
 .up {color:#ff8188} .down {color:#59d6a0} @media(max-width:600px){main{margin:28px auto;padding:0 16px}th,td{padding:14px}}
+
+h2 {font-size:20px} .rules, #summary, .stock-card, details {background:#141f31;border:1px solid #27364c;border-radius:12px;padding:18px;margin:20px 0}
+li {line-height:1.8;margin:8px 0;overflow-wrap:anywhere} .warning,.unknown {color:#ffd08a} .pass,.selected {color:#59d6a0} .fail,.rejected {color:#ff8188}
+a {color:#73b5ff} footer {color:#a5b3c9;font-size:13px;line-height:1.8;margin:32px 0} .stock-card p {line-height:1.7;overflow-wrap:anywhere} details p {font-size:13px} summary {cursor:pointer}

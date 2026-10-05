@@ -9,7 +9,7 @@ class Handler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(ROOT / 'static'), **kwargs)
     def do_GET(self):
         if urlsplit(self.path).path == '/api/stocks':
-            data = (ROOT / 'static/stocks.json').read_bytes()
+            data = (ROOT / 'static/results.json').read_bytes()
             self.send_response(200)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_header('Content-Length', str(len(data)))

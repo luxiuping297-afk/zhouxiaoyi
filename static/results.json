@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 2,
+  "scanStartedAt": "2026-10-06T03:37:54.851378+08:00",
+  "generatedAt": "2026-10-06T03:37:54.851396+08:00",
+  "validForSeconds": 180,
+  "scope": "沪深京全A股",
+  "universeCount": null,
+  "scannedCount": 0,
+  "complete": false,
+  "stocks": [],
+  "errors": [
+    "接口预检未全部通过，暂停批量采集；不会宣称全市场零只入选。",
+    "history：HTTP 503：接口拒绝访问",
+    "funds：资金日线可获取，最新2026-09-30；扫描时刻盘中资金未确认：HTTP 502：接口拒绝访问"
+  ],
+  "dataMode": "real",
+  "provider": "东方财富公开网页接口（非承诺服务）",
+  "counts": {
+    "selected": 0,
+    "rejected": 0,
+    "unknown": 0,
+    "expired": 0
+  }
+}
