@@ -1,0 +1,20 @@
+name: Verify exchange calendars and public data pricing
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+  checks: write
+jobs:
+  research:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 scripts/research_sources.py
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const report = require('fs').readFileSync('/tmp/source-research.json', 'utf8');
+            await github.rest.checks.create({owner:context.repo.owner,repo:context.repo.repo,head_sha:context.sha,
+              name:'Official calendar and public pricing evidence',status:'completed',conclusion:'neutral',
+              output:{title:'Read-only public source verification',summary:'```json\n'+report+'\n```'}});
