@@ -43,7 +43,7 @@ function render() {
   if (!report) return;
   const selected = report.stocks.filter(s => effectiveStatus(s) === 'selected').length;
   const unknown = report.stocks.filter(s => effectiveStatus(s) === 'unknown').length;
-  summary.replaceChildren(node('h2', report.complete ? '已完成指定范围扫描' : '扫描未完成或范围不完整'));
+  summary.replaceChildren(node('h2', report.complete ? '已完成指定范围扫描' : '无法判断：扫描未完成或范围不完整'));
   summary.append(node('p', `范围：${report.scope} · 已处理 ${report.scannedCount} / ${report.universeCount ?? '未知'} 只 · 当前有效入选 ${selected} 只 · 无法判断 ${unknown} 只`));
   summary.append(node('p', `结果生成：${displayTime(report.generatedAt)}；逐股行情时间见下方。`));
   if (!report.complete) summary.append(node('p', '扫描未完成不能解释为市场上没有符合条件的股票。', 'warning'));
@@ -107,7 +107,7 @@ async function load() {
     render();
   } catch {
     report = null;
-    summary.replaceChildren();
+    summary.replaceChildren(node('h2', '无法判断：真实扫描结果加载失败'));
     body.replaceChildren();
     status.textContent = '真实扫描结果加载失败或格式无效，无法判断。不会使用演示数据。';
   } finally { refresh.disabled = false; }
@@ -116,5 +116,17 @@ async function load() {
 search.addEventListener('input', render);
 direction.addEventListener('change', render);
 refresh.addEventListener('click', load);
+async function loadVersion() {
+  try {
+    const response = await fetch('./build.json', {cache: 'no-store'});
+    if (!response.ok) return;
+    const data = await response.json();
+    if (typeof data.commit === 'string' && /^[0-9a-f]{40}$/.test(data.commit)) {
+      const element = document.querySelector('#build-version');
+      if (element) element.textContent = `发布版本：${data.commit.slice(0, 7)} · 真实筛选前端 v2`;
+    }
+  } catch { /* Local development has no published build metadata. */ }
+}
 setInterval(render, 30000);
+loadVersion();
 load();

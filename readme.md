@@ -48,7 +48,7 @@ python3 app.py --host 0.0.0.0 --port 8000
 3. **Actions → Deploy stock radar to GitHub Pages → Run workflow** 可部署网页；勾选 `refresh_data` 会先探测、采集，再部署。可在 `symbols` 填入逗号分隔的代码，留空请求全A股。
 4. 接口不完整时工作流会发布诊断页面，**不会声称采集成功**；代码错误或测试失败会阻止部署。部署地址以工作流 `github-pages` 输出为准。
 
-网站文件位于 `static/`，使用相对路径，兼容 `/zhouxiaoyi/` 子目录。不需要后台或构建依赖。
+网站源文件位于 `static/`，发布前由 `scripts/build_site.py` 验证并生成发布目录，同时提供站点根路径及旧 `/static/` 兼容入口；`build.json` 记录发布提交，网页页脚显示版本。不需要后台或构建依赖。
 GitHub Pages 是静态展示；GitHub Actions 手动采集不是实时行情服务。工作流有排队和部署延迟，超过180秒的结果不会当作当前入选；没有设置自动定时采集，也没有宣称覆盖当前整个市场。
 若要稳定盘中全市场扫描，需要可用的批量数据接口与常驻采集服务；应在验证所需数据和接口权限后再采购或部署。
 
@@ -79,6 +79,10 @@ node tests/test_frontend.cjs
 
 部署任务自身的 `permissions` 必须同时包含 `contents: read`、`pages: write`、`id-token: write`；任务权限会覆盖工作流级权限，漏掉读取权限会导致 Checkout 报 Repository not found。
 
-根目录 `index.html` 为按分支发布 Pages 提供入口，跳转到 `static/`；Actions 直接发布 `static/` 时也能打开相同页面。建议 Pages Source 选择 GitHub Actions，以免两种发布方式同时覆盖站点。
+根目录 `index.html` 保留旧入口；新版 Actions 发布包同时包含根页面与 `/static/` 页面。Pages Source 应统一选择 GitHub Actions，以免两种发布方式同时覆盖站点。
 
 关电脑后无需重建项目：查看雷达直接打开 https://luxiuping297-afk.github.io/zhouxiaoyi/ 。继续编辑时打开本仓库；使用 Codex 时回到昨天的任务并选择同一个仓库，继续描述修改要求。已经提交到 GitHub 的文件不会因为关电脑丢失。
+
+## 公网发布修复
+
+`59c076d` 的两条部署任务均未能获取 GitHub 托管 runner，未上传新版文件。工作流改用 `ubuntu-22.04`，发布前验证真实前端、结果结构和演示数据已删除。数据失败时首页显示“无法判断”和原因。根路径及旧 `/static/` 路径共享相同版本的前端与诊断。

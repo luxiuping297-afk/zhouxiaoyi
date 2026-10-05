@@ -4,10 +4,10 @@
 <header><p class="eyebrow">A-SHARE RADAR</p><h1>A股筛选雷达</h1><p>五项条件同时成立才入选，必要数据缺失时无法判断。</p></header>
 <p class="notice">真实数据扫描结果 · 不使用演示行情 · 主力资金采用供应商统计口径</p>
 <section class="rules"><h2>筛选口径</h2><ol><li>最近120个已完成交易日，前期高点后回撤超过20%，最近两日收盘及今日价格连续向上。</li><li>前两个交易日及今日扫描时涨幅均 &gt; 0% 且 ≤ 3%。</li><li>前两日全天成交量逐日增加 &gt; 0% 且 ≤ 50%；今日与昨日同一分钟累计量比较，同样范围。</li><li>最新正式财报归母净利润 &gt; 0，或未被正式财报覆盖的最新正式预告确认扭亏。</li><li>今日扫描时主力净流入 &gt; 0。行情延迟超过180秒或同刻分钟数据不完整，无法判断。</li></ol></section>
-<section id="summary" aria-label="扫描状态"></section>
+<section id="summary" aria-label="扫描状态"><h2>无法判断：正在读取真实数据诊断</h2><p>接口或数据不可用时不会显示演示股票作为筛选结果。</p></section>
 <details><summary>接口可用性与数据来源</summary><p>可用性检测仅代表检测时刻的样本请求；每只股票仍逐项检查完整性。</p><p id="probe-time"></p><ul id="capabilities"></ul></details>
 <section class="controls" aria-label="结果筛选"><label>搜索股票<input id="search" type="search" placeholder="股票代码或名称"></label><label>结果状态<select id="direction"><option value="all">全部结果</option><option value="selected">入选</option><option value="unknown">无法判断</option><option value="rejected">不满足</option></select></label><button id="refresh" type="button">读取最新扫描结果</button></section>
 <p id="status" role="status" aria-live="polite">正在加载…</p>
 <section id="stocks" aria-label="股票筛选详情"></section>
-<footer>网页刷新只读取采集程序已生成的快照，不会发起新的全市场扫描。数据过期后不显示为当前入选。<a href="https://github.com/luxiuping297-afk/zhouxiaoyi">项目与运行说明</a></footer>
+<footer>网页刷新只读取采集程序已生成的快照，不会发起新的全市场扫描。数据过期后不显示为当前入选。<a href="https://github.com/luxiuping297-afk/zhouxiaoyi">项目与运行说明</a><p id="build-version">真实筛选前端 v2</p></footer>
 </main></body></html>

@@ -19,7 +19,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     timeout-minutes: 45
     permissions:
       contents: read
@@ -61,10 +61,12 @@ jobs:
           fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
+      - name: Prepare and verify publication directory
+        run: python3 scripts/build_site.py --output "$RUNNER_TEMP/stock-radar-site" --commit "$GITHUB_SHA"
       - name: Upload static website
         uses: actions/upload-pages-artifact@v3
         with:
-          path: static
+          path: ${{ runner.temp }}/stock-radar-site
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4

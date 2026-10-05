@@ -39,7 +39,7 @@ async function run(rows, options = {}) {
   let result = await run([stock()]);
   assert.equal(result.nodes['#stocks'].children.length, 1);
   assert.match(text(result.nodes['#summary']), /当前有效入选 1 只/);
-  assert.deepEqual(result.calls, ['./results.json', './capabilities.json']);
+  assert.deepEqual([...result.calls].sort(), ['./build.json', './results.json', './capabilities.json'].sort());
   assert.match(text(result.nodes['#stocks']), /<script>测试输入<\/script>/);
   const details = result.nodes['#stocks'].children[0].children.at(-1);
   assert.equal(details.children[1].children[0].tag, 'span'); // Non-HTTPS URL is not a link.
