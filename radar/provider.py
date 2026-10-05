@@ -57,7 +57,11 @@ def get_json(url, params, timeout=12):
                 raise DataError(f'HTTP {response.status}')
             payload = json.load(response)
     except HTTPError as error:
-        raise DataError(f'HTTP {error.code}：接口拒绝访问') from None
+        body = error.read(4000).decode('utf-8', errors='replace')
+        reason = ('上游连接在响应头之前被终止，未收到行情JSON' if error.code == 503 and 'connection termination' in body
+                  else '上游网关返回502，未收到行情JSON' if error.code == 502 and 'Bad Gateway' in body
+                  else '接口返回HTTP错误，未取得有效数据')
+        raise DataError(f'HTTP {error.code}：{reason}') from None
     except URLError as error:
         # Do not include proxy URLs, credentials or potentially sensitive server responses.
         reason = str(error.reason)

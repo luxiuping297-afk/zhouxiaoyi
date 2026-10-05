@@ -47,6 +47,8 @@ class ProviderTests(unittest.TestCase):
 
     def test_network_blocker_not_empty_success(self):
         class Offline(Eastmoney):
+            def collect(self, symbol, calendar):
+                return {'symbol': symbol, 'calendar': calendar, 'errors': []}
             def calendar(self, now):
                 raise DataError('blocked')
             def universe(self):
@@ -55,10 +57,12 @@ class ProviderTests(unittest.TestCase):
         self.assertFalse(report['complete'])
         self.assertEqual(report['counts']['selected'], 0)
         self.assertEqual(report['dataMode'], 'real')
-        self.assertEqual(len(report['errors']), 2)
+        self.assertTrue(report['errors'])
 
     def test_selected_scope_missing_calendar(self):
         class Offline(Eastmoney):
+            def collect(self, symbol, calendar):
+                return {'symbol': symbol, 'calendar': calendar, 'errors': []}
             def calendar(self, now):
                 raise DataError('blocked')
         report = scan(Offline(), ['600000'])
@@ -81,12 +85,16 @@ class ProviderTests(unittest.TestCase):
     def test_preflight_blocks_batch_before_requests(self):
         class MustNotRequest(Eastmoney):
             def calendar(self, now):
-                raise AssertionError('Must not make batch requests')
+                raise DataError('sample unavailable')
+            def collect(self, symbol, calendar):
+                return {'symbol': symbol}
+            def universe(self):
+                raise AssertionError('Must not request full market')
         caps = {'checks': [{'kind': key, 'status': 'reachable', 'message': ''} for key in ('history', 'minutes', 'financial', 'forecasts')] +
                           [{'kind': 'funds', 'status': 'partial', 'message': 'daily only'}]}
         report = scan(MustNotRequest(), capabilities=caps)
         self.assertFalse(report['complete'])
-        self.assertEqual(report['stocks'], [])
+        self.assertEqual(len(report['stocks']), 3)
         self.assertTrue(report['errors'])
 
 

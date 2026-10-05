@@ -1,41 +1,35 @@
 {
-  "checkedAt": "2026-10-06T03:37:45.080940+08:00",
-  "sampleSymbol": "600519",
+  "checkedAt": "2026-10-06T05:52:30.103919+08:00",
   "checks": [
     {
       "kind": "history",
-      "source": "https://push2his.eastmoney.com/api/qt/stock/kline/get",
       "status": "unavailable",
-      "message": "HTTP 503：接口拒绝访问"
+      "message": "600519：上游连接在响应头之前被终止，未收到行情JSON；000001：上游连接在响应头之前被终止，未收到行情JSON；300750：上游连接在响应头之前被终止，未收到行情JSON；腾讯备用前复权日线三只均可获取，但历史涨幅字段未验证",
+      "source": "https://push2his.eastmoney.com/api/qt/stock/kline/get"
     },
     {
       "kind": "minutes",
-      "source": "https://push2his.eastmoney.com/api/qt/stock/trends2/get",
-      "status": "reachable",
-      "message": "请求和基本字段解析通过；不代表盘中完整性或全市场授权已确认"
+      "status": "unavailable",
+      "message": "600519：上游连接在响应头之前被终止，未收到行情JSON；000001：请求及基本字段通过；不代表当日盘中链路通过；300750：请求及基本字段通过；不代表当日盘中链路通过",
+      "source": "https://push2his.eastmoney.com/api/qt/stock/trends2/get"
     },
     {
       "kind": "financial",
-      "source": "https://datacenter-web.eastmoney.com/api/data/v1/get",
       "status": "reachable",
-      "message": "请求和基本字段解析通过；不代表盘中完整性或全市场授权已确认"
+      "message": "600519：请求及基本字段通过；不代表当日盘中链路通过；000001：请求及基本字段通过；不代表当日盘中链路通过；300750：请求及基本字段通过；不代表当日盘中链路通过",
+      "source": "https://datacenter-web.eastmoney.com/api/data/v1/get"
     },
     {
       "kind": "forecasts",
-      "source": "https://datacenter-web.eastmoney.com/api/data/v1/get",
       "status": "reachable",
-      "message": "请求和基本字段解析通过；不代表盘中完整性或全市场授权已确认"
+      "message": "600519：请求及基本字段通过；不代表当日盘中链路通过；000001：请求及基本字段通过；不代表当日盘中链路通过；300750：请求及基本字段通过；不代表当日盘中链路通过",
+      "source": "https://datacenter-web.eastmoney.com/api/data/v1/get"
     },
     {
       "kind": "funds",
-      "source": "https://push2.eastmoney.com/api/qt/clist/get",
-      "status": "partial",
-      "message": "资金日线可获取，最新2026-09-30；扫描时刻盘中资金未确认：HTTP 502：接口拒绝访问",
-      "historicalSource": "https://push2his.eastmoney.com/api/qt/stock/fflow/daykline/get",
-      "historicalEvidence": {
-        "tradeDate": "2026-09-30",
-        "netInflow": 533565520.0
-      }
+      "status": "unavailable",
+      "message": "600519：上游网关返回502，未收到行情JSON；000001：上游网关返回502，未收到行情JSON；300750：上游网关返回502，未收到行情JSON",
+      "source": "https://push2.eastmoney.com/api/qt/clist/get"
     }
   ]
 }
