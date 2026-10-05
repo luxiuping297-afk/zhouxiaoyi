@@ -4,8 +4,9 @@
     {
       "kind": "history",
       "status": "partial",
-      "message": "600519：已获取，最新记录 2026-09-30；000001：已获取，最新记录 2026-09-30；300750：已获取，最新记录 2026-09-30；备用日线160条可取，但历史涨幅字段/除权昨收尚未验证，不能判断严格3%阈值。9月30日为休市前正常最新交易日。",
-      "source": "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/newfqkline/get"
+      "message": "腾讯复权与原始日线对照：600519、000001、300750最近两日涨幅可在同日期OHLC一致、误差区间不跨阈值时计算；120日复权高低点和日成交量可核验。除权差异日、边界样本仍缺少除权昨收/官方涨幅；此为历史部分，不代表五项完整链路可用。最新交易日为9月30日，休市期间正常。",
+      "source": "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/newfqkline/get",
+      "calculationCheckedAt": "2026-10-06T06:24:39.918545+08:00"
     },
     {
       "kind": "minutes",

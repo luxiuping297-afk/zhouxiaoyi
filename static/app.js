@@ -132,6 +132,39 @@ function render() {
   status.textContent = market.state === 'closed' ? '休市，等待下一交易日；盘中筛选暂停。接口诊断与休市状态分别记录。' : matches.length ? `显示 ${matches.length} 条结果；数据缺失或过期均不入选。` :
     (report.stocks.length ? '没有符合当前显示条件的结果。' : '尚无可判断的真实股票结果，请查看扫描状态和接口问题。');
 }
+function percentage(value) {
+  const number = Number(value);
+  return value != null && Number.isFinite(number) ? number.toFixed(4) + '%' : '无法判断';
+}
+async function loadHistoricalAnalysis() {
+  const area = document.querySelector('#historical-checks');
+  if (!area) return;
+  try {
+    const response = await fetch('./historical-analysis.json', {cache: 'no-store'});
+    if (!response.ok) throw new Error();
+    const data = await response.json();
+    if (data.schemaVersion !== 1 || data.dataMode !== 'real' || data.historicalOnly !== true || data.formalSelection !== false || !Array.isArray(data.stocks) || !data.stocks.every(s => s.formalSelection === false && s.status === 'unknown')) throw new Error();
+    area.replaceChildren(node('h2', '历史核验（不属于正式入选）'));
+    area.append(node('p', `核验：${displayTime(data.generatedAt)}；以下只检查已完成交易日，不补造第三天盘中数据。`));
+    for (const row of data.stocks) {
+      const card = node('article', '', 'stock-card');
+      card.append(node('h3', `${row.symbol} · 完整筛选：无法判断`));
+      if (row.error) { card.append(node('p', row.error, 'warning')); area.append(card); continue; }
+      if (!Array.isArray(row.gains) || !Array.isArray(row.dailyVolumes) || !row.drawdown) throw new Error();
+      card.append(node('p', `历史截至 ${row.historyAsOf}；120交易日窗口 ${row.windowStart} 至 ${row.historyAsOf}。`));
+      const list = node('ul', '');
+      for (const gain of row.gains) list.append(node('li', `${gain.date || ''} 涨幅：${percentage(gain.percent)} · ${labels[gain.status]}；${gain.reason}；区间 ${percentage(gain.lowerPercent)} ～ ${percentage(gain.upperPercent)}`, gain.status));
+      for (const volume of row.dailyVolumes) list.append(node('li', `${volume.date} 日成交量较 ${volume.previousDate || '前一日'}：${percentage(volume.percent)} · ${labels[volume.status]}${volume.reason ? '；' + volume.reason : ''}`, volume.status));
+      const drawdown = row.drawdown;
+      list.append(node('li', `120日历史回撤：${percentage(drawdown.percent)} · ${labels[drawdown.status]}（仅回撤子条件）；高点 ${drawdown.peakDate || '无法判断'} → 后续低点 ${drawdown.troughDate || '无法判断'}`, drawdown.status));
+      list.append(node('li', `最近三个已完成交易日收盘持续向上：${drawdown.historicalTurnUp ? '成立' : '未成立或无法判断'}；今日止跌转向仍无法判断。`));
+      list.append(node('li', '第三天涨幅、盘中同刻成交量、主力资金：无法判断。不得作为正式入选。', 'unknown'));
+      card.append(list);
+      card.append(link(row.source, '腾讯历史日线来源'));
+      area.append(card);
+    }
+  } catch { area.replaceChildren(node('h2', '历史核验记录不可用'), node('p', '无法判断；不会补入演示或推测结果。')); }
+}
 async function loadCapabilities() {
   const list = document.querySelector('#capabilities');
   try {
@@ -169,6 +202,7 @@ async function load() {
     status.textContent = '真实扫描结果加载失败或格式无效，无法判断。不会使用演示数据。';
   } finally { refresh.disabled = false; }
   await loadCapabilities();
+  await loadHistoricalAnalysis();
 }
 search.addEventListener('input', render);
 direction.addEventListener('change', render);

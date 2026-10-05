@@ -4,7 +4,8 @@ from datetime import datetime
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 from urllib.error import HTTPError, URLError
-from .engine import CHINA
+from .historical import parse_bars, verified_change
+from .engine import CHINA, Missing
 from .provider import Eastmoney, DataError, get_json, numeric, valid_symbol
 
 HISTORY = 'https://proxy.finance.qq.com/ifzqgtimg/appstock/app/newfqkline/get'
@@ -25,8 +26,17 @@ def tencent_history(symbol, now, index=False, fetch=get_json):
     rows = data.get('day') if index else data.get('qfqday')
     if not isinstance(rows, list) or len(rows) < 121:
         raise DataError('腾讯前复权日线不足121条或字段缺失')
+    raw_index = {}
+    if not index:
+        try:
+            raw_data = fetch(HISTORY, {'param': f'{code},day,,,160,'})['data'][code]
+            raw_index = {r['date']: r for r in parse_bars(raw_data['day'])}
+        except (DataError, Missing, KeyError, TypeError, ValueError):
+            pass  # OHLC remains usable; missing raw/ex-rights references never invent gains.
+    paired = {r['date']: r for r in parse_bars(rows)}
     output = []
     previous = None
+    previous_date = None
     for row in rows:
         if not isinstance(row, list) or len(row) < 6:
             raise DataError('腾讯日线字段变化')
@@ -35,9 +45,14 @@ def tencent_history(symbol, now, index=False, fetch=get_json):
         if min(close, high, low) <= 0 or volume < 0 or high < max(close, low):
             raise DataError('腾讯日线价格或成交量无效')
         if date < now.date().isoformat() and previous is not None:
+            change = {'status': 'unknown', 'percent': None, 'reason': '缺少同日期不复权对照，无法可靠计算涨幅'}
+            if previous_date in raw_index and date in raw_index:
+                change = verified_change(paired[previous_date], paired[date], raw_index[previous_date], raw_index[date])
             output.append(dict(date=date, close=close, high=high, low=low, volume=volume,
-                               changePercent=None))
+                               changePercent=change['percent'] if change['status'] != 'unknown' else None,
+                               changeVerification=change))
         previous = close
+        previous_date = date
     dates = [r['date'] for r in output]
     if dates != sorted(set(dates)):
         raise DataError('腾讯日线日期重复或乱序')
@@ -94,12 +109,12 @@ class VerifiedFallback(Eastmoney):
         ):
             if kind in bundle:
                 continue
-            source = dict(kind=kind, name='腾讯前复权日线（未提供已验证历史涨幅字段）' if kind == 'history' else '腾讯报价', url=url)
+            source = dict(kind=kind, name='腾讯前复权日线；涨幅经同日期原价及精度区间核验计算' if kind == 'history' else '腾讯报价', url=url)
             try:
                 value = operation()
                 bundle[kind] = value
-                if kind == 'history':
-                    bundle['errors'].append(dict(kind='history', message='备用日线可用于高低点和日成交量，但历史涨幅字段未验证，涨幅条件无法判断；不以复权价格近似代替严格阈值'))
+                if kind == 'history' and any(row.get('changePercent') is None for row in value[-2:]):
+                    bundle['errors'].append(dict(kind='history', message='前两日涨幅缺少可靠复权/原价对照或跨越舍入边界，无法判断；不以复权价相除直接替代严格阈值'))
                 source.update(status='available', dataAt=value[-1]['date'] if kind == 'history' else value['asOf'])
                 if kind == 'quote':
                     bundle['name'] = value['name']

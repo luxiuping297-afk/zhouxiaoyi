@@ -19,7 +19,7 @@ function stock(overrides = {}) {
 }
 async function run(rows, options = {}) {
   const nodes = {};
-  for (const id of ['search', 'direction', 'status', 'stocks', 'refresh', 'summary', 'capabilities', 'probe-time', 'market-state']) nodes['#' + id] = element();
+  for (const id of ['search', 'direction', 'status', 'stocks', 'refresh', 'summary', 'capabilities', 'probe-time', 'market-state', 'historical-checks']) nodes['#' + id] = element();
   nodes['#direction'].value = 'all';
   const calls = [];
   const report = {schemaVersion: 2, dataMode: 'real', complete: true, scope: '单元测试范围', scannedCount: rows.length,
@@ -29,7 +29,7 @@ async function run(rows, options = {}) {
     fetch: async url => {
       calls.push(url);
       if (options.fail && url.endsWith('results.json')) throw new Error('network failure');
-      return {ok: true, json: async () => url.endsWith('market-calendar.json') ? (options.badCalendar ? {} : JSON.parse(fs.readFileSync('static/market-calendar.json','utf8'))) : url.endsWith('results.json') ? report : {checkedAt: new Date(now).toISOString(), checks: []}};
+      return {ok: true, json: async () => url.endsWith('historical-analysis.json') ? JSON.parse(fs.readFileSync('static/historical-analysis.json','utf8')) : url.endsWith('market-calendar.json') ? (options.badCalendar ? {} : JSON.parse(fs.readFileSync('static/market-calendar.json','utf8'))) : url.endsWith('results.json') ? report : {checkedAt: new Date(now).toISOString(), checks: []}};
     }});
   vm.runInContext(fs.readFileSync('static/app.js', 'utf8'), context);
   await new Promise(resolve => setImmediate(resolve));
@@ -39,7 +39,9 @@ async function run(rows, options = {}) {
   let result = await run([stock()]);
   assert.equal(result.nodes['#stocks'].children.length, 1);
   assert.match(text(result.nodes['#summary']), /当前有效入选 1 只/);
-  assert.deepEqual([...result.calls].sort(), ['./build.json', './results.json', './capabilities.json', './market-calendar.json'].sort());
+  assert.deepEqual([...result.calls].sort(), ['./build.json', './results.json', './capabilities.json', './market-calendar.json', './historical-analysis.json'].sort());
+  assert.match(text(result.nodes['#historical-checks']), /不属于正式入选/);
+  assert.equal(result.nodes['#historical-checks'].children.filter(c => c.tag === 'article').length, 3);
   assert.match(text(result.nodes['#stocks']), /<script>测试输入<\/script>/);
   const details = result.nodes['#stocks'].children[0].children.at(-1);
   assert.equal(details.children[1].children[0].tag, 'span'); // Non-HTTPS URL is not a link.
