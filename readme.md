@@ -41,3 +41,11 @@ python3 app.py --host 0.0.0.0 --port 8000
 
 修改演示行情后，推送到 `main` 并等待部署完成即可更新公网网站。
 此版本不包含真实行情、登录或交易；静态网站文件和数据会公开提供，请勿放入密码或 API 密钥。
+
+## 2026-10-05 部署修复与继续操作
+
+部署任务自身的 `permissions` 必须同时包含 `contents: read`、`pages: write`、`id-token: write`；任务权限会覆盖工作流级权限，漏掉读取权限会导致 Checkout 报 Repository not found。
+
+根目录 `index.html` 为按分支发布 Pages 提供入口，跳转到 `static/`；Actions 直接发布 `static/` 时也能打开相同页面。建议 Pages Source 选择 GitHub Actions，以免两种发布方式同时覆盖站点。
+
+关电脑后无需重建项目：查看雷达直接打开 https://luxiuping297-afk.github.io/zhouxiaoyi/ 。继续编辑时打开本仓库；使用 Codex 时回到昨天的任务并选择同一个仓库，继续描述修改要求。已经提交到 GitHub 的文件不会因为关电脑丢失。
