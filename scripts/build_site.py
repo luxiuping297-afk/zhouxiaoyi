@@ -5,8 +5,21 @@ import re
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
+import sys
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from radar.scope import exclusion_reason, POLICY
+
+
+def verify_scope(row):
+    record = dict(row)
+    # Formal engine results carry symbol/name; infer only the market from
+    # an allowed prefix, then enforce the same collector-side name/code policy.
+    if 'exchange' not in record:
+        record['exchange'] = '沪' if str(record.get('symbol','')).startswith('6') else '深'
+    if exclusion_reason(record):
+        raise ValueError('发布结果包含范围外股票：'+str(record.get('symbol')))
 
 
 def build(output, commit):
@@ -32,17 +45,21 @@ def build(output, commit):
     if not isinstance(report.get('stocks'), list) or not isinstance(report.get('errors'), list):
         raise ValueError('结果文件缺少真实结果或诊断字段')
     for stock in report['stocks']:
+        verify_scope(stock)
         checks = stock.get('checks', [])
         if len(checks) != 5 or stock.get('status') not in ('selected', 'rejected', 'unknown'):
             raise ValueError('股票缺少完整五项检查')
         if stock['status'] == 'selected' and any(c.get('status') != 'pass' for c in checks):
             raise ValueError('不能发布必要数据缺失却判为入选的股票')
     history = json.loads((source / 'historical-market.json').read_text())
+    if report.get('scopePolicy') != POLICY or history.get('scopePolicy') != POLICY:
+        raise ValueError('必须重新生成执行沪深主板非ST排除策略的报告')
     if history.get('dataMode') != 'real' or history.get('historicalOnly') is not True or history.get('formalSelection') is not False:
         raise ValueError('历史候选报告必须与正式入选分离')
     if history.get('candidateCount') != len(history.get('historicalCandidates', [])):
         raise ValueError('历史候选数量不一致')
     for row in history.get('historicalCandidates', []) + history.get('technicalCandidates', []):
+        verify_scope(row)
         if row.get('formalSelection') is not False or row.get('status') != 'unknown':
             raise ValueError('历史候选不得正式入选')
         if len(row.get('gains', [])) != 2 or len(row.get('dailyVolumes', [])) != 2 or any(c.get('status') != 'pass' for c in row['gains'] + row['dailyVolumes'] + [row.get('drawdown', {})]):

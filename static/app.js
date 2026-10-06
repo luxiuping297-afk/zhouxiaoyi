@@ -101,7 +101,7 @@ function render() {
   const unknown = report.stocks.filter(s => effectiveStatus(s) === 'unknown').length;
   summary.replaceChildren(node('h2', market.state === 'closed' ? '休市，等待下一交易日' : report.complete ? '已完成指定范围扫描' : '无法判断：扫描未完成或范围不完整'));
   summary.append(node('p', `盘中正式筛选范围：${report.scope} · 已处理 ${report.scannedCount} / ${report.universeCount ?? '未知'} 只 · 当前有效入选 ${selected} 只 · 无法判断 ${unknown} 只`));
-  summary.append(node('p', '上述数量仅指盘中正式筛选；沪深京历史扫描数量及历史候选见下方独立区域。'));
+  summary.append(node('p', '上述数量仅指盘中正式筛选；沪深主板非ST历史扫描数量及历史候选见下方独立区域。'));
   summary.append(node('p', `结果生成：${displayTime(report.generatedAt)}；逐股行情时间见下方。`));
   if (!report.complete && market.state !== 'closed') summary.append(node('p', '扫描未完成不能解释为市场上没有符合条件的股票。', 'warning'));
   for (const message of report.errors) summary.append(node('p', message, 'warning'));
@@ -192,13 +192,14 @@ async function loadHistoricalMarket() {
     const response = await fetch('./historical-market.json', {cache: 'no-store'});
     if (!response.ok) throw new Error();
     const data = await response.json();
-    if (data.schemaVersion !== 1 || data.dataMode !== 'real' || data.historicalOnly !== true || data.formalSelection !== false || !Array.isArray(data.historicalCandidates) || !Array.isArray(data.technicalCandidates) || !data.historicalCandidates.every(s => historicalCandidateValid(s, true)) || !data.technicalCandidates.every(s => historicalCandidateValid(s, false)) || data.candidateCount !== data.historicalCandidates.length) throw new Error();
-    area.replaceChildren(node('h2', data.running ? '全市场历史扫描进行中' : data.coverageComplete ? '沪深京历史扫描已完成（非正式入选）' : '历史扫描覆盖不完整'));
+    if (data.schemaVersion !== 1 || data.scopePolicy !== 'sh-sz-mainboard-no-st-v1' || data.dataMode !== 'real' || data.historicalOnly !== true || data.formalSelection !== false || !Array.isArray(data.historicalCandidates) || !Array.isArray(data.technicalCandidates) || !data.historicalCandidates.every(s => historicalCandidateValid(s, true)) || !data.technicalCandidates.every(s => historicalCandidateValid(s, false)) || data.candidateCount !== data.historicalCandidates.length) throw new Error();
+    area.replaceChildren(node('h2', data.running ? '沪深主板历史扫描进行中' : data.coverageComplete ? '沪深主板非ST历史扫描已完成（非正式入选）' : '历史扫描覆盖不完整'));
+    area.append(node('p', `证券池排除前 ${data.beforeExclusionCount ?? '未知'} 只；排除 ${data.excludedCount ?? '未知'} 只；保留 ${data.eligibleUniverseCount ?? '未知'} 只。${Object.entries(data.exclusionCounts || {}).map(([reason,n]) => reason+' '+n+'只').join('；')}。这些排除在历史及盘中采集端执行。`));
     area.append(node('p', `范围：${data.scope}；实际已尝试 ${data.scannedCount} / ${data.universeCount ?? '未知'} 只；历史候选（技术+盈利/扭亏已核验）${data.candidateCount} 只；技术历史条件通过 ${data.technicalCandidateCount} 只；失败或无法判断 ${data.failureCount} 只。`));
     area.append(node('p', `行情截至：${data.historyAsOf || '无法确认'}；比较交易日：${(data.comparisonDates || []).join('、')}；120日窗口从 ${data.historyWindowStart || '无法确认'} 开始；报告更新：${displayTime(data.generatedAt)}。`));
     const exchangeUniverse = data.exchangeUniverseCounts || {};
     const exchangeScanned = data.exchangeScannedCounts || {};
-    area.append(node('p', ['沪', '深', '京'].map(x => `${x}市实际尝试 ${exchangeScanned[x] || 0} / ${exchangeUniverse[x] ?? '未知'} 只`).join('；')));
+    area.append(node('p', ['沪', '深'].map(x => `${x}市主板实际尝试 ${exchangeScanned[x] || 0} / ${exchangeUniverse[x] ?? '未知'} 只`).join('；')));
     const stages = data.stageCounts || {};
     const analyzed = (stages.history_unknown || 0) + (stages.history_rejected || 0) + (stages.technical_candidate || 0);
     area.append(node('p', `分阶段核验：${stages.volume_rejected || 0} 只已不满足连续温和放量，未继续请求120日日线；${analyzed} 只完成120日历史分析；${data.technicalCandidates.length} 只核验财报/正式预告。失败数量包含采集失败、数据不完整、涨幅精度或财务无法判断，不包含明确不满足筛选条件。`));

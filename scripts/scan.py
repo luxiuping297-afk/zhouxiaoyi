@@ -12,13 +12,15 @@ from radar.engine import CHINA, evaluate
 from radar.provider import DataError, Eastmoney, valid_symbol
 from radar.fallback import VerifiedFallback
 from radar.market import market_status
+from radar.universe import universe
+from radar.scope import restrict, exclusion_reason, SCOPE, POLICY
 
 
-def scan(provider, symbols=None, workers=2, limit=None, capabilities=None):
+def scan(provider, symbols=None, workers=2, limit=None, capabilities=None, listing=None):
     explicit = symbols is not None
     started = datetime.now(CHINA)
     report = {'schemaVersion': 2, 'scanStartedAt': started.isoformat(), 'generatedAt': None,
-              'validForSeconds': 180, 'scope': '指定代码' if symbols is not None else '沪深京全A股',
+              'validForSeconds': 180, 'scope': SCOPE+('（指定代码）' if symbols is not None else ''), 'scopePolicy': POLICY,
               'universeCount': None, 'scannedCount': 0, 'complete': False, 'stocks': [], 'errors': [],
               'dataMode': 'real', 'provider': provider.name}
     report['marketStatus'] = market_status(started)
@@ -27,8 +29,29 @@ def scan(provider, symbols=None, workers=2, limit=None, capabilities=None):
                       scope='当前市场状态（未启动盘中筛选）',
                       counts=dict(selected=0, rejected=0, unknown=0, expired=0))
         return report
+    try:
+        listing = listing if listing is not None else universe(provider.fetch)
+        eligible, scope_stats = restrict(listing['stocks'])
+        report.update(scope_stats)
+        if explicit:report['scope'] += '（指定代码）'
+        report.update(universeSource=listing['source'], universeFetchedAt=listing['fetchedAt'])
+    except (DataError, ValueError, KeyError, TypeError) as error:
+        report.update(generatedAt=started.isoformat(), liveChainVerified=False,
+                      counts=dict(selected=0, rejected=0, unknown=0, expired=0))
+        report['errors'].append(f'无法确认主板及ST排除范围：{error}；未请求个股数据')
+        return report
+    identities = {r['symbol']: r for r in eligible}
+    if explicit:
+        report['requestedCount'] = len(symbols)
+        report['excludedRequestedSymbols'] = [s for s in symbols if s not in identities]
+        symbols = [s for s in symbols if s in identities]
     if not explicit:
-        sample = scan(provider, ['600519', '000001', '300750'], workers)
+        sample_symbols = [s for s in ('600519', '000001', '600036') if s in identities]
+        if len(sample_symbols) != 3:
+            report.update(generatedAt=started.isoformat(), counts=dict(selected=0,rejected=0,unknown=0,expired=0))
+            report['errors'].append('主板链路验证样本身份不可确认，未启动批量请求')
+            return report
+        sample = scan(provider, sample_symbols, workers, listing=listing)
         if sample['errors'] or any(any(c['status'] == 'unknown' for c in row['checks']) for row in sample['stocks']):
             sample['scope'] = '三只真实股票链路验证（未启动全市场扫描）'
             sample['complete'] = False
@@ -41,11 +64,7 @@ def scan(provider, symbols=None, workers=2, limit=None, capabilities=None):
         calendar = []
         report['errors'].append(f'交易日历不可用：{error}')
     if symbols is None:
-        try:
-            symbols = provider.universe()
-        except (DataError, ValueError) as error:
-            report['errors'].append(f'证券列表不可用：{error}；未完成全市场扫描，不能解释为零只入选')
-            symbols = []
+        symbols = list(identities)
     report['universeCount'] = len(symbols) if symbols or not any('证券列表不可用' in e for e in report['errors']) else None
     if limit is not None and len(symbols) > limit:
         symbols = symbols[:limit]
@@ -53,14 +72,22 @@ def scan(provider, symbols=None, workers=2, limit=None, capabilities=None):
     # Avoid thousands of doomed requests when the shared prerequisite is missing.
     if not calendar and not explicit:
         for symbol in symbols:
-            bundle = {'symbol': symbol, 'errors': [{'kind': 'calendar', 'message': '交易日历不可用，未请求个股数据'}]}
+            bundle = {'symbol': symbol, 'name': identities[symbol]['name'], 'errors': [{'kind': 'calendar', 'message': '交易日历不可用，未请求个股数据'}]}
             report['stocks'].append(evaluate(bundle, datetime.now(CHINA)))
     else:
         def one(symbol):
             bundle = provider.collect(symbol, calendar)
+            current_name = bundle.get('name') or (bundle.get('quote') or {}).get('name')
+            quote_name = (bundle.get('quote') or {}).get('name')
+            if any(exclusion_reason(dict(identities[symbol], name=name)) for name in (current_name, quote_name) if name):
+                return None  # New ST designation since listing: never evaluate/select.
+            bundle['name'] = current_name or identities[symbol]['name']
             return evaluate(bundle, datetime.now(CHINA))
         with ThreadPoolExecutor(max_workers=workers) as pool:
             for row in pool.map(one, symbols):
+                if row is None:
+                    report['errors'].append('扫描期间证券名称变为ST/*ST，已排除，不列为正式结果')
+                    continue
                 report['stocks'].append(row)
                 print(f"{row['symbol']} {row['status']}", file=sys.stderr, flush=True)
     report['scannedCount'] = len(report['stocks'])
@@ -75,7 +102,7 @@ def scan(provider, symbols=None, workers=2, limit=None, capabilities=None):
 
 def main():
     parser = argparse.ArgumentParser(description='真实A股扫描；数据缺失时输出无法判断，不使用演示数据')
-    parser.add_argument('--symbols', help='逗号分隔的六位A股代码；不指定则请求全市场列表')
+    parser.add_argument('--symbols', help='六位代码逗号分隔；只采集沪深主板非ST，指定代码也不能绕过排除')
     parser.add_argument('--limit', type=int, help='只扫描前N只；结果明确标注局部范围')
     parser.add_argument('--workers', type=int, default=2, choices=range(1, 5))
     parser.add_argument('--preflight', action='store_true', help='先实测五类接口，失败时只发布诊断，不做批量采集')

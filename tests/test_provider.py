@@ -6,6 +6,10 @@ from radar.engine import CHINA
 from radar.provider import DataError, Eastmoney, numeric, valid_symbol
 from scripts.scan import scan
 
+TEST_LISTING = dict(source='https://example.test', fetchedAt='2026-09-30', stocks=[
+    dict(symbol=s, name='仅测试', exchange='沪' if s.startswith('6') else '深')
+    for s in ('600000','600519','000001','600036')])
+
 
 @patch('scripts.scan.market_status', return_value={'state': 'open'})
 class ProviderTests(unittest.TestCase):
@@ -55,7 +59,7 @@ class ProviderTests(unittest.TestCase):
                 raise DataError('blocked')
             def universe(self):
                 raise DataError('blocked')
-        report = scan(Offline())
+        report = scan(Offline(), listing=TEST_LISTING)
         self.assertFalse(report['complete'])
         self.assertEqual(report['counts']['selected'], 0)
         self.assertEqual(report['dataMode'], 'real')
@@ -67,7 +71,7 @@ class ProviderTests(unittest.TestCase):
                 return {'symbol': symbol, 'calendar': calendar, 'errors': []}
             def calendar(self, now):
                 raise DataError('blocked')
-        report = scan(Offline(), ['600000'])
+        report = scan(Offline(), ['600000'], listing=TEST_LISTING)
         self.assertFalse(report['complete'])
         self.assertEqual(report['stocks'][0]['status'], 'unknown')
         self.assertEqual(len(report['stocks'][0]['checks']), 5)
@@ -94,7 +98,7 @@ class ProviderTests(unittest.TestCase):
                 raise AssertionError('Must not request full market')
         caps = {'checks': [{'kind': key, 'status': 'reachable', 'message': ''} for key in ('history', 'minutes', 'financial', 'forecasts')] +
                           [{'kind': 'funds', 'status': 'partial', 'message': 'daily only'}]}
-        report = scan(MustNotRequest(), capabilities=caps)
+        report = scan(MustNotRequest(), capabilities=caps, listing=TEST_LISTING)
         self.assertFalse(report['complete'])
         self.assertEqual(len(report['stocks']), 3)
         self.assertTrue(report['errors'])

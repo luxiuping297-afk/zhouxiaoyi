@@ -11,6 +11,7 @@ from radar.fallback import HISTORY,tencent_history
 from radar.historical import parse_bars,analyze
 from radar.universe import universe
 from radar.market import market_status
+from radar.scope import restrict, exclusion_reason, SCOPE, POLICY
 
 
 def atomic(path,data):
@@ -73,6 +74,8 @@ def financial_check(provider,symbol,now):
 
 def screen(record,calendar,reader):
     base={**record,'formalSelection':False,'historyAsOf':None,'expectedHistoryDate':calendar[-1]}
+    reason=exclusion_reason(record)
+    if reason:return dict(**base,state='scope_excluded',exclusionReason=reason)
     try:
         short=reader.bars(record['code'],4,'')
         base['sourceMostRecentDate']=short[-1]['date'] if short else None
@@ -99,7 +102,7 @@ def run(workers=8,output=Path('static/historical-market.json'),symbols=None):
     rows=[]
     audit_path=output.with_name('historical-market-audit.json')
     report=dict(schemaVersion=1,dataMode='real',historicalOnly=True,formalSelection=False,
-        startedAt=started,generatedAt=started,scope='沪深京全A股历史筛选',running=True,coverageComplete=False,
+        startedAt=started,generatedAt=started,scope=SCOPE+'历史筛选',scopePolicy=POLICY,running=True,coverageComplete=False,
         universeCount=None,scannedCount=0,failureCount=0,candidateCount=0,technicalCandidateCount=0,
         historicalCandidates=[],technicalCandidates=[],failures=[],errors=[],marketStatus=market_status(now))
     atomic(output,report)
@@ -107,9 +110,11 @@ def run(workers=8,output=Path('static/historical-market.json'),symbols=None):
     try:
         listing=universe(reader.fetch)
         atomic('/tmp/radar-market-universe.json',listing)
-        records=listing['stocks'];calendar=[r['date'] for r in tencent_history('000001',now,index=True,fetch=reader.fetch)][-120:]
+        records,scope_stats=restrict(listing['stocks'])
+        report.update(scope_stats)
+        calendar=[r['date'] for r in tencent_history('000001',now,index=True,fetch=reader.fetch)][-120:]
         if len(calendar)!=120:raise DataError('指数日历不足120交易日')
-        report.update(universeCount=len(records),universeSource=listing['source'],universeFetchedAt=listing['fetchedAt'],exchangeUniverseCounts=listing['exchangeCounts'],
+        report.update(universeCount=len(records),universeSource=listing['source'],universeFetchedAt=listing['fetchedAt'],
             historyAsOf=calendar[-1],comparisonDates=calendar[-3:],historyWindowStart=calendar[0])
         if symbols is not None:
             records=[r for r in records if r['symbol'] in symbols];report['scope']='少量真实股票全链路预检（不是全市场扫描）'
@@ -129,7 +134,7 @@ def run(workers=8,output=Path('static/historical-market.json'),symbols=None):
                 if len(rows)%100==0:
                     atomic(audit_path,dict(generatedAt=report['generatedAt'],dataMode='real',historicalOnly=True,formalSelection=False,stocks=rows))
                     atomic(output,report);print(json.dumps({k:report[k] for k in ('scannedCount','universeCount','candidateCount','failureCount','stageCounts')},ensure_ascii=False),flush=True)
-        report.update(running=False,coverageComplete=symbols is None and len(rows)==listing['reportedTotal'],generatedAt=datetime.now(CHINA).isoformat(),
+        report.update(running=False,coverageComplete=symbols is None and len(rows)==report['eligibleUniverseCount'],generatedAt=datetime.now(CHINA).isoformat(),
             financialCounts={s:sum(r['earnings']['status']==s for r in report['technicalCandidates']) for s in ('pass','fail','unknown')})
     except (DataError,Missing,KeyError,TypeError,ValueError) as e:
         report.update(running=False);report['errors'].append(str(e))

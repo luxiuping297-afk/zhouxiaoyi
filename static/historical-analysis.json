@@ -3,9 +3,9 @@
   "dataMode": "real",
   "historicalOnly": true,
   "formalSelection": false,
-  "generatedAt": "2026-10-06T06:24:39.918545+08:00",
+  "generatedAt": "2026-10-06T09:38:09.759445+08:00",
   "marketStatus": {
-    "checkedAt": "2026-10-06T06:24:36.950997+08:00",
+    "checkedAt": "2026-10-06T09:37:53.556494+08:00",
     "timeZone": "Asia/Shanghai",
     "source": "https://www.sse.com.cn/disclosure/dealinstruc/closed/",
     "state": "closed",
@@ -14,6 +14,9 @@
     "nextTradingDate": "2026-10-08",
     "reason": "国庆节"
   },
+  "scopePolicy": "sh-sz-mainboard-no-st-v1",
+  "scope": "沪深主板普通A股（排除创业板、科创板、北交所及ST/*ST）",
+  "errors": [],
   "referenceNextTradingDate": "2026-10-08",
   "stocks": [
     {
@@ -90,8 +93,10 @@
         "status": "unknown",
         "reason": "120日历史回撤不等于今日止跌转向成立"
       },
+      "name": "贵州茅台",
+      "exchange": "沪",
       "source": "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/newfqkline/get",
-      "fetchedAt": "2026-10-06T06:24:39.915473+08:00"
+      "fetchedAt": "2026-10-06T09:38:09.584795+08:00"
     },
     {
       "symbol": "000001",
@@ -167,34 +172,36 @@
         "status": "unknown",
         "reason": "120日历史回撤不等于今日止跌转向成立"
       },
+      "name": "平安银行",
+      "exchange": "深",
       "source": "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/newfqkline/get",
-      "fetchedAt": "2026-10-06T06:24:39.402395+08:00"
+      "fetchedAt": "2026-10-06T09:38:09.759016+08:00"
     },
     {
-      "symbol": "300750",
+      "symbol": "600036",
       "status": "unknown",
       "formalSelection": false,
       "historyAsOf": "2026-09-30",
       "windowStart": "2026-04-09",
       "completedSessions": 120,
       "adjustment": "腾讯同次核验前复权日线；每日涨幅仅在相邻复权/原始OHLC一致且误差区间不跨阈值时计算",
-      "differingAdjustedDates": 83,
+      "differingAdjustedDates": 62,
       "firstAdjustedDifference": "2026-04-09",
       "gains": [
         {
           "status": "fail",
-          "percent": "-1.777458132127812596321791840",
-          "lowerPercent": "-1.784246575342465753424657530",
-          "upperPercent": "-1.770669223919446537434070830",
+          "percent": "-0.3198818897637795275590551200",
+          "lowerPercent": "-0.3690036900369003690036900400",
+          "upperPercent": "-0.2707359094265321191238001500",
           "previousDate": "2026-09-28",
           "date": "2026-09-29",
           "reason": "复权/原价一致；同源相邻收盘价计算，并检查舍入区间"
         },
         {
           "status": "pass",
-          "percent": "1.502789400278940027894002800",
-          "lowerPercent": "1.495763746033959764303894600",
-          "upperPercent": "1.509815544475051431360926100",
+          "percent": "1.851394717353739817329054600",
+          "lowerPercent": "1.801579466929911154985192500",
+          "upperPercent": "1.901234567901234567901234600",
           "previousDate": "2026-09-29",
           "date": "2026-09-30",
           "reason": "复权/原价一致；同源相邻收盘价计算，并检查舍入区间"
@@ -205,26 +212,26 @@
           "status": "fail",
           "previousDate": "2026-09-28",
           "date": "2026-09-29",
-          "previousVolume": "339144.00",
-          "volume": "298757.00",
-          "percent": "-11.90851083905361734248578775"
+          "previousVolume": "543918.00",
+          "volume": "449346.00",
+          "percent": "-17.38717968517313271485775429"
         },
         {
           "status": "fail",
           "previousDate": "2026-09-29",
           "date": "2026-09-30",
-          "previousVolume": "298757.00",
-          "volume": "296995.00",
-          "percent": "-0.5897769759369654936955452100"
+          "previousVolume": "449346.00",
+          "volume": "699871.00",
+          "percent": "55.75325027929479732767177190"
         }
       ],
       "drawdown": {
-        "status": "pass",
-        "peakDate": "2026-05-07",
-        "peakHigh": "467.35",
-        "troughDate": "2026-09-28",
-        "troughLow": "286.66",
-        "percent": "38.66267251524553332620092008",
+        "status": "fail",
+        "peakDate": "2026-09-14",
+        "peakHigh": "41.83",
+        "troughDate": "2026-09-21",
+        "troughLow": "40.36",
+        "percent": "3.514224240975376524025818790",
         "historicalTurnUp": false,
         "reason": "只确认历史回撤和收盘走势；今日止跌转向仍需有效盘中报价"
       },
@@ -244,8 +251,10 @@
         "status": "unknown",
         "reason": "120日历史回撤不等于今日止跌转向成立"
       },
+      "name": "招商银行",
+      "exchange": "沪",
       "source": "https://proxy.finance.qq.com/ifzqgtimg/appstock/app/newfqkline/get",
-      "fetchedAt": "2026-10-06T06:24:39.917477+08:00"
+      "fetchedAt": "2026-10-06T09:38:09.681081+08:00"
     }
   ]
 }

@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       refresh_history:
-        description: '使用免费源扫描沪深京历史候选（与正式入选分开）'
+        description: '使用免费源扫描沪深主板非ST历史候选（与正式入选分开）'
         type: boolean
         default: false
       refresh_data:
@@ -13,7 +13,7 @@ on:
         type: boolean
         default: false
       symbols:
-        description: '六位A股代码，逗号分隔；留空请求全A股。建议先少量验证。'
+        description: '六位A股代码，逗号分隔；留空扫描沪深主板非ST。指定代码也会执行排除。'
         type: string
         default: ''
 permissions:

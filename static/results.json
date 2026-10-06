@@ -1,9 +1,10 @@
 {
   "schemaVersion": 2,
-  "scanStartedAt": "2026-10-06T06:15:06.521738+08:00",
-  "generatedAt": "2026-10-06T06:15:06.521738+08:00",
+  "scanStartedAt": "2026-10-06T09:38:09.826317+08:00",
+  "generatedAt": "2026-10-06T09:38:09.826317+08:00",
   "validForSeconds": 180,
   "scope": "当前市场状态（未启动盘中筛选）",
+  "scopePolicy": "sh-sz-mainboard-no-st-v1",
   "universeCount": null,
   "scannedCount": 0,
   "complete": false,
@@ -12,7 +13,7 @@
   "dataMode": "real",
   "provider": "东方财富；腾讯已验证日线/报价备用源",
   "marketStatus": {
-    "checkedAt": "2026-10-06T06:15:06.521738+08:00",
+    "checkedAt": "2026-10-06T09:38:09.826317+08:00",
     "timeZone": "Asia/Shanghai",
     "source": "https://www.sse.com.cn/disclosure/dealinstruc/closed/",
     "state": "closed",
