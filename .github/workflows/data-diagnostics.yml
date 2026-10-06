@@ -37,7 +37,8 @@ jobs:
           script: |
             const fs = require('fs');
             const report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/sample-report.json', 'utf8'));
+            const evidence = Object.fromEntries(['schemaVersion','screeningMode','selectionDate','state','message','complete','scannedCount','counts','errors','readinessProbes','stocks'].map(key => [key,report[key]]));
             await github.rest.checks.create({owner:context.repo.owner,repo:context.repo.repo,head_sha:context.sha,
               name:'Small-sample after-close data evidence',status:'completed',conclusion:'neutral',
               output:{title:'Dated after-close diagnostic only; no intraday scanning',
-                summary:'```json\n'+JSON.stringify(report,null,2)+'\n```'}});
+                summary:'```json\n'+JSON.stringify(evidence,null,2)+'\n```'}});
