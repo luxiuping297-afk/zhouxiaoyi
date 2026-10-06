@@ -26,11 +26,11 @@ class MarketTests(unittest.TestCase):
 
     def test_closed_scan_never_requests_provider(self):
         from unittest.mock import patch
-        class NoRequests:
-            name='test'
-            def calendar(self,now):raise AssertionError('Must not request data while closed')
-        with patch('scripts.scan.market_status',return_value={'state':'closed','message':'休市，等待下一交易日'}):
-            r=scan(NoRequests())
-        self.assertEqual(r['errors'],[])
-        self.assertEqual(r['stocks'],[])
-        self.assertFalse(r['liveChainVerified'])
+        from tempfile import TemporaryDirectory
+        from pathlib import Path
+        from scripts.scan_after_close import run
+        with TemporaryDirectory() as folder:
+            with patch('scripts.scan_after_close.datetime') as clock, patch('scripts.scan_after_close.Reader') as reader:
+                clock.now.return_value=datetime(2026,10,6,20,30,tzinfo=CHINA)
+                self.assertEqual(run(output=Path(folder)/'results.json'),0)
+                reader.assert_not_called()

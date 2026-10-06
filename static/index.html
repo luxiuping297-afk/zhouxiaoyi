@@ -1,18 +1,18 @@
 <!doctype html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>A股筛选雷达</title><link rel="stylesheet" href="./style.css"><script src="./app.js" defer></script></head>
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>A股筛选雷达 · 盘后选股</title><link rel="stylesheet" href="./style.css"><script src="./app.js" defer></script></head>
 <body><main>
-<header><p class="eyebrow">A-SHARE RADAR</p><h1>A股筛选雷达</h1><p>仅筛选沪深主板普通A股；排除创业板、科创板、北交所及ST、*ST。历史候选和盘中正式筛选均在采集端执行排除。五项条件同时成立才入选，必要数据缺失时无法判断。</p></header>
-<p class="notice">真实数据扫描结果 · 不使用演示行情 · 主力资金采用供应商统计口径</p>
-<section class="rules"><h2>筛选口径</h2><ol><li>最近120个已完成交易日，前期高点后回撤超过20%，最近两日收盘及今日价格连续向上。</li><li>前两个交易日及今日扫描时涨幅均 &gt; 0% 且 ≤ 3%。</li><li>前两日全天成交量逐日增加 &gt; 0% 且 ≤ 50%；今日与昨日同一分钟累计量比较，同样范围。</li><li>最新正式财报归母净利润 &gt; 0，或未被正式财报覆盖的最新正式预告确认扭亏。</li><li>今日扫描时主力净流入 &gt; 0。行情延迟超过180秒或同刻分钟数据不完整，无法判断。</li></ol></section>
-<section id="market-state" aria-label="市场交易状态"><h2>正在核对交易所日历…</h2></section>
-<section id="summary" aria-label="扫描状态"><h2>无法判断：正在读取真实数据诊断</h2><p>接口或数据不可用时不会显示演示股票作为筛选结果。</p></section>
-<details><summary>接口可用性与数据来源</summary><p>接口检测与休市状态分别记录。休市期间报价停留在上一交易日正常；实际HTTP错误仍保留为连接诊断。可用性检测仅代表检测时刻的样本请求。</p><p id="probe-time"></p><ul id="capabilities"></ul></details>
-<details><summary>本次核验仍需补齐的数据与付费权限</summary><p>腾讯日线已验证日期、前复权高低价和日成交量；相邻复权/原价OHLC一致且误差区间不跨0%或3%边界时，可计算前两日涨幅。除权相关差异日仍缺少除权昨收/官方涨幅，无法判断。东方财富日线和分钟接口仍有503，盘中资金仍有502；财报及正式预告已可获取。休市不要求当日实时数据；复市后仍须验证当日与前一日同一分钟的完整成交量和有时间戳的主力净流入。</p><p><a href="./history-validation.json">三只真实股票的最新字段核验记录</a> · <a href="https://github.com/luxiuping297-afk/zhouxiaoyi/blob/main/docs/paid-data-options.md">已核实费用、权限和未覆盖条件</a></p><p>Tushare基础日线有历史涨幅字段，达到120积分可获取，需要注册账户与Token；本项目尚未配置。无需在聊天或公开仓库提供密钥。尚无经核实能覆盖全部五项的完整付费方案，暂不购买。</p></details>
-<details><summary>查看三只真实股票的历史部分核验（非正式入选）</summary><section id="historical-checks"><p>正在读取历史核验记录…</p></section><p><a href="./historical-analysis.json">查看计算值、误差范围和源数据时间</a></p></details>
-<section id="historical-market" aria-label="沪深主板历史候选"><h2>正在读取沪深主板非ST历史扫描报告…</h2></section>
-<h2>正式入选与盘中判断（独立于历史候选）</h2>
-<section class="controls" aria-label="结果筛选"><label>搜索股票<input id="search" type="search" placeholder="股票代码或名称"></label><label>结果状态<select id="direction"><option value="all">全部结果</option><option value="selected">入选</option><option value="unknown">无法判断</option><option value="rejected">不满足</option></select></label><button id="refresh" type="button">读取最新扫描结果</button></section>
-<p id="status" role="status" aria-live="polite">正在加载…</p>
-<section id="stocks" aria-label="股票筛选详情"></section>
-<footer>网页刷新只读取采集程序已生成的快照，不会发起新的全市场扫描。数据过期后不显示为当前入选。<a href="https://github.com/luxiuping297-afk/zhouxiaoyi">项目与运行说明</a><p id="build-version">真实筛选前端 v2</p></footer>
+<header><p class="eyebrow">AFTER-CLOSE A-SHARE RADAR</p><h1>A股筛选雷达 · 盘后选股</h1><p>仅筛选沪深主板普通A股，排除创业板、科创板、北交所、ST和*ST。排除在采集端执行；已停止盘中扫描。</p></header>
+<p class="notice">真实盘后数据 · 不使用演示行情 · 数据缺失或日期不一致时无法判断</p>
+<section class="rules"><h2>盘后筛选条件（全部同时满足）</h2><ol>
+<li>最近120个完整交易日，前三日上涨开始之前的前期高点之后回撤至少20%；最近三个完整交易日收盘价逐日上升。</li>
+<li>最近三个完整交易日，每天涨幅均大于0且不超过3%。使用四日收盘及复权对照；除权口径或价格精度无法确认时无法判断。</li>
+<li>这三天每天的全天成交量比上一交易日增加大于0且不超过50%；需要四个连续交易日的完整全天量。</li>
+<li>最新正式财报归母净利润大于0，或未被财报覆盖的最新有效正式预告扭亏为盈。</li>
+<li>第三个交易日全天主力资金净流入大于0，必须明确对应选股日；主力口径为大单加超大单。分钟量和盘中资金不参与选股。</li>
+</ol><p>交易日北京时间20:30触发一次。先检查日线及全天资金是否更新到当日；未更新时每分钟核验，最多6次。个股数据仍不完整则标为无法判断，不退回前日数据。GitHub定时任务可能延迟，实际运行时间以结果更新时间为准。</p></section>
+<section id="market-state" aria-label="交易日历状态"></section>
+<section id="summary" aria-label="盘后扫描状态"><h2>正在读取盘后选股结果…</h2></section>
+<section class="controls"><label>搜索股票<input id="search" type="search" placeholder="股票代码或名称"></label><label>结果状态<select id="direction"><option value="selected">入选</option><option value="all">全部结果</option><option value="unknown">无法判断</option><option value="rejected">不满足</option></select></label><button id="refresh" type="button">读取最新盘后结果</button></section>
+<p id="status" role="status" aria-live="polite"></p><section id="stocks" aria-label="盘后结果详情"></section>
+<footer><p>网页刷新仅读取已发布快照，不触发扫描。所有结果标明选股日期，不作为其他交易日的结果。</p><p><a href="./results.json">完整盘后报告与逐股证据</a> · <a href="https://github.com/luxiuping297-afk/zhouxiaoyi/blob/main/docs/after-close.md">盘后数据与定时运行说明</a> · <a href="https://github.com/luxiuping297-afk/zhouxiaoyi">项目仓库</a></p><p>优先使用免费源，未购买服务。此前历史候选不再作为当前盘后结果展示。</p></footer>
 </main></body></html>

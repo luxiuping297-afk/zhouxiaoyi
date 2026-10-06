@@ -1,83 +1,27 @@
-// In-memory DOM tests: no artificial market data is written to the website.
-const assert = require('node:assert/strict');
-const fs = require('node:fs');
-const vm = require('node:vm');
-
-const now = Date.parse('2026-09-30T10:05:00+08:00');
-class Clock extends Date { static now() { return now; } }
-function element(tag = '') {
-  return {tag, value: '', textContent: '', children: [], className: '', disabled: false,
-    append(...nodes) { this.children.push(...nodes); },
-    replaceChildren(...nodes) { this.children = nodes; }, addEventListener() {}};
+// Synthetic fixtures stay in memory and are never published as market results.
+const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
+const now=Date.parse('2026-10-06T20:30:00+08:00');
+class Clock extends Date{static now(){return now;}}
+function el(tag=''){return {tag,value:'',textContent:'',children:[],className:'',disabled:false,append(...x){this.children.push(...x)},replaceChildren(...x){this.children=x},addEventListener(){}};}
+function text(x){return x.textContent+' '+x.children.map(text).join(' ');}
+function stock(overrides={}){return {symbol:'600000',name:'<script>测试输入</script>',status:'selected',selectionDate:'2026-09-30',screeningMode:'after_close',evaluatedAt:'2026-09-30T20:30:00+08:00',checks:['trend','gains','volume','earnings','funds'].map(id=>({id,label:id,status:'pass',reason:'test-only',evidence:id==='funds'?{tradeDate:'2026-09-30'}:{}})),sources:[{kind:'funds',status:'available',name:'test',url:'javascript:alert(1)'}],errors:[],...overrides};}
+async function run(rows,options={}){
+ const nodes={};for(const id of ['search','direction','status','stocks','refresh','summary','market-state'])nodes['#'+id]=el();nodes['#direction'].value='all';const calls=[];
+ const report={schemaVersion:3,screeningMode:'after_close',scopePolicy:'sh-sz-mainboard-no-st-v1',dataMode:'real',selectionDate:'2026-09-30',comparisonDates:['2026-09-28','2026-09-29','2026-09-30'],complete:true,state:'completed',scope:'test-only',scannedCount:rows.length,universeCount:rows.length,generatedAt:'2026-09-30T20:30:00+08:00',stocks:rows,errors:[],...options.report};
+ const context=vm.createContext({Date:options.clock||Clock,URL,setInterval(){},document:{querySelector:id=>nodes[id],createElement:el},fetch:async url=>{calls.push(url);if(options.fail&&url.endsWith('results.json'))throw new Error();return {ok:true,json:async()=>url.endsWith('results.json')?report:options.badCalendar?{}:JSON.parse(fs.readFileSync('static/market-calendar.json','utf8'))}}});
+ vm.runInContext(fs.readFileSync('static/app.js','utf8'),context);await new Promise(r=>setImmediate(r));return {nodes,context,calls};
 }
-function text(el) { return el.textContent + el.children.map(text).join(' '); }
-function stock(overrides = {}) {
-  return {symbol: '600000', name: '<script>测试输入</script>', status: 'selected',
-    evaluatedAt: new Date(now).toISOString(), quoteAt: new Date(now).toISOString(),
-    checks: ['trend', 'gains', 'volume', 'earnings', 'funds'].map(id => ({id, label: id, status: 'pass', reason: '测试证据'})),
-    sources: [{kind: 'quote', status: 'available', name: '测试来源', url: 'javascript:alert(1)'}], errors: [], ...overrides};
-}
-async function run(rows, options = {}) {
-  const nodes = {};
-  for (const id of ['search', 'direction', 'status', 'stocks', 'refresh', 'summary', 'capabilities', 'probe-time', 'market-state', 'historical-checks', 'historical-market']) nodes['#' + id] = element();
-  nodes['#direction'].value = 'all';
-  const calls = [];
-  const report = {schemaVersion: 2, dataMode: 'real', complete: true, scope: '单元测试范围', scannedCount: rows.length,
-    universeCount: rows.length, generatedAt: new Date(now).toISOString(), errors: [], stocks: rows};
-  const context = vm.createContext({Date: options.clock || Clock, URL, setInterval() {},
-    document: {querySelector: id => nodes[id], createElement: element},
-    fetch: async url => {
-      calls.push(url);
-      if (options.fail && url.endsWith('results.json')) throw new Error('network failure');
-      return {ok: true, json: async () => url.endsWith('historical-market.json') ? (options.marketReport || JSON.parse(fs.readFileSync('static/historical-market.json','utf8'))) : url.endsWith('historical-analysis.json') ? JSON.parse(fs.readFileSync('static/historical-analysis.json','utf8')) : url.endsWith('market-calendar.json') ? (options.badCalendar ? {} : JSON.parse(fs.readFileSync('static/market-calendar.json','utf8'))) : url.endsWith('results.json') ? report : {checkedAt: new Date(now).toISOString(), checks: []}};
-    }});
-  vm.runInContext(fs.readFileSync('static/app.js', 'utf8'), context);
-  await new Promise(resolve => setImmediate(resolve));
-  return {nodes, context, calls};
-}
-(async () => {
-  let result = await run([stock()]);
-  assert.equal(result.nodes['#stocks'].children.length, 1);
-  assert.match(text(result.nodes['#summary']), /当前有效入选 1 只/);
-  assert.deepEqual([...result.calls].sort(), ['./build.json', './results.json', './capabilities.json', './market-calendar.json', './historical-analysis.json', './historical-market.json'].sort());
-  assert.match(text(result.nodes['#historical-market']), /非正式入选/);
-  assert.match(text(result.nodes['#historical-checks']), /不属于正式入选/);
-  assert.equal(result.nodes['#historical-checks'].children.filter(c => c.tag === 'article').length, 3);
-  assert.match(text(result.nodes['#stocks']), /<script>测试输入<\/script>/);
-  const details = result.nodes['#stocks'].children[0].children.at(-1);
-  assert.equal(details.children[1].children[0].tag, 'span'); // Non-HTTPS URL is not a link.
-  result.nodes['#search'].value = '不存在';
-  vm.runInContext('render()', result.context);
-  assert.equal(result.nodes['#stocks'].children.length, 0);
-  result = await run([stock({quoteAt: new Date(now - 181000).toISOString()})]);
-  assert.match(text(result.nodes['#summary']), /当前有效入选 0 只/);
-  assert.match(text(result.nodes['#stocks']), /行情已过期/);
-  result.nodes['#direction'].value = 'selected';
-  vm.runInContext('render()', result.context);
-  assert.equal(result.nodes['#stocks'].children.length, 0);
-  const failed = stock();
-  failed.checks[2].status = 'fail';
-  result = await run([failed]);
-  assert.match(text(result.nodes['#stocks']), /不满足/);
-  assert.match(text(result.nodes['#summary']), /当前有效入选 0 只/);
-  const missing = stock();
-  missing.checks[4].status = 'unknown';
-  result = await run([missing]);
-  assert.match(text(result.nodes['#summary']), /无法判断 1 只/);
-  result = await run([], {fail: true});
-  assert.match(result.nodes['#status'].textContent, /无法判断/);
-  assert.equal(result.nodes['#stocks'].children.length, 0);
-  class HolidayClock extends Date { static now() { return Date.parse('2026-10-06T10:05:00+08:00'); } }
-  result = await run([stock()], {clock: HolidayClock});
-  assert.match(text(result.nodes['#market-state']), /休市，等待下一交易日/);
-  assert.match(text(result.nodes['#market-state']), /2026-09-30/);
-  assert.match(text(result.nodes['#market-state']), /2026-10-08/);
-  assert.match(text(result.nodes['#summary']), /当前有效入选 0 只/);
-  result = await run([stock()], {badCalendar: true});
-  assert.match(text(result.nodes['#market-state']), /无法确认/);
-  assert.match(text(result.nodes['#summary']), /当前有效入选 0 只/);
-  result = await run([stock()], {marketReport: {schemaVersion: 1, dataMode:'real', historicalOnly:true, formalSelection:false, candidateCount:1, historicalCandidates:[stock()], technicalCandidates:[stock()]}});
-  assert.match(text(result.nodes['#historical-market']), /报告不可用/);
-  assert.equal(result.nodes['#stocks'].children.length, 1); // Invalid historical candidates never contaminate the formal list.
-  console.log('PASS: 前端真实结果加载、搜索、过期隐藏、五项同时满足、缺失/失败状态、安全文本和相对路径');
-})().catch(error => { console.error(error); process.exitCode = 1; });
+(async()=>{
+ let r=await run([stock()]);assert.match(text(r.nodes['#summary']),/有效入选 1 只/);assert.equal(r.nodes['#stocks'].children.length,1);assert.match(text(r.nodes['#stocks']),/<script>测试输入<\/script>/);assert.match(text(r.nodes['#market-state']),/休市，等待下一交易日/);assert.deepEqual(r.calls,['./market-calendar.json','./results.json']);assert.equal(r.nodes['#stocks'].children[0].children.at(-1).children[1].children[0].tag,'span');
+ r.nodes['#search'].value='不存在';vm.runInContext('render()',r.context);assert.equal(r.nodes['#stocks'].children.length,0);
+ const missing=stock();missing.checks[4].status='unknown';r=await run([missing]);assert.match(text(r.nodes['#summary']),/无法判断 1 只/);
+ const fail=stock();fail.checks[2].status='fail';r=await run([fail]);assert.match(text(r.nodes['#summary']),/不满足 1 只/);
+ const stale=stock();stale.checks[4].evidence.tradeDate='2026-09-29';r=await run([stale]);assert.match(text(r.nodes['#summary']),/有效入选 0 只/);
+ class NextDay extends Date{static now(){return Date.parse('2026-10-08T20:30:00+08:00')}}r=await run([stock()],{clock:NextDay});assert.match(text(r.nodes['#summary']),/不会用旧数据替代/);assert.match(text(r.nodes['#summary']),/有效入选 0 只/);
+ r=await run([stock()],{report:{schemaVersion:2,screeningMode:'intraday'}});assert.equal(r.nodes['#stocks'].children.length,0);assert.match(text(r.nodes['#summary']),/旧版盘中/);
+ r=await run([stock({symbol:'300750'})]);assert.equal(r.nodes['#stocks'].children.length,0);
+ r=await run([stock({name:'XD*ST测试'})]);assert.equal(r.nodes['#stocks'].children.length,0);
+ r=await run([stock()],{badCalendar:true});assert.match(text(r.nodes['#summary']),/有效入选 0 只/);
+ r=await run([],{fail:true});assert.match(text(r.nodes['#summary']),/加载失败/);
+ console.log('PASS: 盘后日期、三日结果、缺失资金、旧数据拒绝、范围排除、安全文本、搜索与休市展示');
+})().catch(e=>{console.error(e);process.exitCode=1});

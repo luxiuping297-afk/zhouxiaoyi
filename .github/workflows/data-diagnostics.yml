@@ -1,6 +1,11 @@
-name: Validate small-sample data connectivity
+name: Validate small-sample after-close data
 on:
   workflow_dispatch:
+    inputs:
+      selection_date:
+        description: '可选：明确指定已完成交易日核验；留空只接受当日盘后'
+        type: string
+        default: ''
 permissions:
   contents: read
   checks: write
@@ -13,31 +18,26 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Diagnose three actual stocks without scanning the market
-        run: python3 scripts/diagnose_network.py --context github-runner --output "$RUNNER_TEMP/network-report.json"
-      - name: Validate the five conditions on three actual stocks
+      - name: Verify dated after-close data on main-board stocks
+        env:
+          SELECTION_DATE: ${{ inputs.selection_date }}
         run: |
           set +e
-          python3 scripts/scan.py --symbols 600519,000001,300750 --workers 3 --output "$RUNNER_TEMP/sample-report.json"
+          if [ -n "$SELECTION_DATE" ]; then
+            python3 scripts/scan_after_close.py --date "$SELECTION_DATE" --symbols 600519,000001,600036 --output "$RUNNER_TEMP/sample-report.json"
+          else
+            python3 scripts/scan_after_close.py --symbols 600519,000001,600036 --output "$RUNNER_TEMP/sample-report.json"
+          fi
           result=$?
           set -e
           if [ "$result" -ne 0 ] && [ "$result" -ne 2 ]; then exit "$result"; fi
-      - name: Record diagnostic evidence
+      - name: Record dated diagnostic evidence
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
-            const report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/network-report.json', 'utf8'));
-            await github.rest.checks.create({
-              owner: context.repo.owner, repo: context.repo.repo, head_sha: context.sha,
-              name: 'Small-sample data connectivity evidence', status: 'completed', conclusion: 'neutral',
-              output: {title: 'Connectivity checks only; live screening not verified',
-                summary: '```json\n' + JSON.stringify(report, null, 2) + '\n```'}
-            });
-            const sample = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/sample-report.json', 'utf8'));
-            await github.rest.checks.create({
-              owner: context.repo.owner, repo: context.repo.repo, head_sha: context.sha,
-              name: 'Three-stock screening chain evidence', status: 'completed', conclusion: 'neutral',
-              output: {title: sample.liveChainVerified ? 'Five-condition chain available' : 'Necessary data unavailable; market scan withheld',
-                summary: '```json\n' + JSON.stringify(sample, null, 2) + '\n```'}
-            });
+            const report = JSON.parse(fs.readFileSync(process.env.RUNNER_TEMP + '/sample-report.json', 'utf8'));
+            await github.rest.checks.create({owner:context.repo.owner,repo:context.repo.repo,head_sha:context.sha,
+              name:'Small-sample after-close data evidence',status:'completed',conclusion:'neutral',
+              output:{title:'Dated after-close diagnostic only; no intraday scanning',
+                summary:'```json\n'+JSON.stringify(report,null,2)+'\n```'}});

@@ -33,28 +33,17 @@ class ScopeTests(unittest.TestCase):
         for r in (record('300750'),record('688001'),record('920149',exchange='京'),record('600001','*ST股票')):
             self.assertEqual(screen(r,['2026-09-30'],NoRequests())['state'],'scope_excluded')
 
-    @patch('scripts.scan.market_status',return_value={'state':'open'})
-    def test_live_explicit_symbols_cannot_bypass_scope(self,_):
-        records=[record('600519'),record('300750'),record('600001','*ST股票')]
-        class Provider:
-            name='test-only'
-            requested=[]
-            def calendar(self,*args):return ['2026-09-30']
-            def collect(self,symbol,calendar):
-                self.requested.append(symbol)
-                return dict(symbol=symbol,name='普通股票',calendar=calendar)
-        provider=Provider()
-        r=scan(provider,['600519','300750','600001'],listing=dict(stocks=records,source='https://example.test',fetchedAt='2026-09-30'))
-        self.assertEqual(provider.requested,['600519'])
-        self.assertEqual([x['symbol'] for x in r['stocks']],['600519'])
-        self.assertEqual(r['excludedRequestedSymbols'],['300750','600001'])
+    def test_retired_intraday_entry_never_collects_even_explicit_symbols(self):
+        from radar.provider import DataError
+        class NoRequests:
+            def collect(self,*args):raise AssertionError('Must not request intraday data')
+        with self.assertRaisesRegex(DataError,'盘中扫描已停用'):
+            scan(NoRequests(),['600519','300750'])
 
-    @patch('scripts.scan.market_status',return_value={'state':'open'})
-    def test_live_new_st_name_is_not_evaluated(self,_):
-        class Provider:
-            name='test-only'
-            def calendar(self,*args):return ['2026-09-30']
-            def collect(self,*args):return dict(symbol='600519',name='*ST测试')
-        r=scan(Provider(),['600519'],listing=dict(stocks=[record('600519')],source='https://example.test',fetchedAt='2026-09-30'))
-        self.assertEqual(r['stocks'],[])
-        self.assertFalse(r['complete'])
+    def test_after_close_exclusion_blocks_before_requests(self):
+        from scripts.scan_after_close import one
+        from radar.engine import Missing
+        class NoRequests:
+            def bars(self,*args):raise AssertionError('Excluded stock must not be fetched')
+        for r in (record('300750'),record('688001'),record('600001','*ST股票')):
+            with self.assertRaises(Missing):one(r,['2026-09-30'],'2026-09-30',NoRequests(),datetime(2026,10,6,tzinfo=CHINA))

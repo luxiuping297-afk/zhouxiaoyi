@@ -2,20 +2,15 @@ name: Deploy stock radar to GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    # 12:30 UTC = 20:30 Asia/Shanghai. Exchange calendar decides holidays.
+    - cron: '30 12 * * 1-5'
   workflow_dispatch:
     inputs:
-      refresh_history:
-        description: '使用免费源扫描沪深主板非ST历史候选（与正式入选分开）'
+      refresh_after_close:
+        description: '交易日盘后核验当日更新并选股；休市不扫描，不使用旧日期'
         type: boolean
-        default: false
-      refresh_data:
-        description: '扫描真实数据后部署（接口不完整时发布无法判断诊断）'
-        type: boolean
-        default: false
-      symbols:
-        description: '六位A股代码，逗号分隔；留空扫描沪深主板非ST。指定代码也会执行排除。'
-        type: string
-        default: ''
+        default: true
 permissions:
   contents: read
 concurrency:
@@ -26,7 +21,7 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 45
     permissions:
-      contents: read
+      contents: write
       pages: write
       id-token: write
     environment:
@@ -39,47 +34,47 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Validate strict screening rules
+      - name: Validate after-close screening rules
         run: |
           python3 -m unittest discover -s tests -v
           node --check static/app.js
           node tests/test_frontend.cjs
-      - name: Collect real data
-        if: github.event_name == 'workflow_dispatch' && inputs.refresh_data
-        env:
-          SCAN_SYMBOLS: ${{ inputs.symbols }}
+      - name: Check scheduled trading day
+        id: session
+        run: |
+          python3 - <<'PYCODE'
+          import os
+          from datetime import datetime
+          from radar.engine import CHINA
+          from radar.market import trading_day, calendar_data
+          active = trading_day(datetime.now(CHINA).date(), calendar_data()) is True
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write('active=' + str(active).lower() + '\n')
+          PYCODE
+      - name: Wait for dated daily data and scan once
+        if: steps.session.outputs.active == 'true' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_after_close))
         run: |
           set +e
-          if [ -n "$SCAN_SYMBOLS" ]; then
-            python3 scripts/scan.py --preflight --symbols "$SCAN_SYMBOLS"
-          else
-            python3 scripts/scan.py --preflight
-          fi
+          python3 scripts/scan_after_close.py --workers 8 --readiness-attempts 6
           scan_exit=$?
           set -e
           if [ "$scan_exit" -ne 0 ] && [ "$scan_exit" -ne 2 ]; then
             exit "$scan_exit"
           fi
-          if [ "$scan_exit" -eq 2 ]; then
-            echo "真实数据不完整；部署诊断页面，不宣称筛选成功。"
-          fi
-      - name: Collect full-market historical candidates
-        if: github.event_name == 'workflow_dispatch' && inputs.refresh_history
+      - name: Persist dated snapshot for once-per-day scan
+        if: steps.session.outputs.active == 'true' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.refresh_after_close))
         run: |
-          set +e
-          python3 scripts/scan_history_market.py --workers 8
-          scan_exit=$?
-          set -e
-          if [ "$scan_exit" -ne 0 ] && [ "$scan_exit" -ne 2 ]; then
-            exit "$scan_exit"
-          fi
-          if [ "$scan_exit" -eq 2 ]; then
-            echo "历史扫描未完整覆盖；发布实际进度和失败原因，不宣称全市场筛选完成。"
+          if ! git diff --quiet -- static/results.json; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add static/results.json
+            git commit -m "Update dated after-close stock radar snapshot"
+            git push origin HEAD:main
           fi
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Prepare and verify publication directory
-        run: python3 scripts/build_site.py --output "$RUNNER_TEMP/stock-radar-site" --commit "$GITHUB_SHA"
+        run: python3 scripts/build_site.py --output "$RUNNER_TEMP/stock-radar-site" --commit "$(git rev-parse HEAD)"
       - name: Upload static website
         uses: actions/upload-pages-artifact@v3
         with:
